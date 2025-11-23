@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Menú principal de Producción -->
+    <menuitem id="menu_cdv_production_root"
+              name="Producción"
+              sequence="50"
+              groups="group_cdv_production_user"
+              web_icon="cdv_production_traceability,static/description/icon.png"/>
+
+    <!-- Submenú: Materias primas -->
+    <menuitem id="menu_cdv_raw_materials"
+              name="Materias primas"
+              parent="menu_cdv_production_root"
+              sequence="10"
+              groups="group_cdv_production_user"/>
+
+    <menuitem id="menu_cdv_raw_material_in_use"
+              name="Materias primas en uso"
+              parent="menu_cdv_raw_materials"
+              action="action_cdv_raw_material_in_use"
+              sequence="10"
+              groups="group_cdv_production_user"/>
+
+    <menuitem id="menu_cdv_raw_material_wizard"
+              name="Poner en producción"
+              parent="menu_cdv_raw_materials"
+              action="action_cdv_raw_material_wizard"
+              sequence="20"
+              groups="group_cdv_production_user"/>
+
+    <!-- Submenú: Producción -->
+    <menuitem id="menu_cdv_production"
+              name="Producción diaria"
+              parent="menu_cdv_production_root"
+              sequence="20"
+              groups="group_cdv_production_user"/>
+
+    <menuitem id="menu_cdv_production_entry"
+              name="Partes de producción"
+              parent="menu_cdv_production"
+              action="action_cdv_production_entry"
+              sequence="10"
+              groups="group_cdv_production_user"/>
+
+    <!-- Submenú: Informes -->
+    <menuitem id="menu_cdv_reports"
+              name="Informes"
+              parent="menu_cdv_production_root"
+              sequence="30"
+              groups="group_cdv_production_user"/>
+
+    <menuitem id="menu_cdv_trace_report"
+              name="Informe de trazabilidad"
+              parent="menu_cdv_reports"
+              action="action_cdv_production_trace_report"
+              sequence="10"
+              groups="group_cdv_production_user"/>
+
+    <!-- Submenú: Configuración -->
+    <menuitem id="menu_cdv_configuration"
+              name="Configuración"
+              parent="menu_cdv_production_root"
+              sequence="90"
+              groups="group_cdv_production_manager"/>
+
+</odoo>
+

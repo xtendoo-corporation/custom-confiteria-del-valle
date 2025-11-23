@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <!-- Categoría de módulo -->
+        <record id="module_category_cdv_production" model="ir.module.category">
+            <field name="name">Confitería del Valle - Producción</field>
+            <field name="description">Gestión de producción y trazabilidad para Confitería del Valle</field>
+            <field name="sequence">20</field>
+        </record>
+
+        <!-- Grupo: Usuario de Producción -->
+        <record id="group_cdv_production_user" model="res.groups">
+            <field name="name">Usuario de Producción</field>
+            <field name="implied_ids" eval="[(4, ref('stock.group_stock_user'))]"/>
+            <field name="comment">Puede gestionar materias primas en uso y partes de producción</field>
+        </record>
+
+        <!-- Grupo: Manager de Producción -->
+        <record id="group_cdv_production_manager" model="res.groups">
+            <field name="name">Manager de Producción</field>
+            <field name="implied_ids" eval="[(4, ref('group_cdv_production_user')), (4, ref('stock.group_stock_manager'))]"/>
+            <field name="comment">Acceso completo a producción y trazabilidad</field>
+        </record>
+
+        <!-- Reglas de registro: Materia prima en uso -->
+        <record id="cdv_raw_material_in_use_company_rule" model="ir.rule">
+            <field name="name">Materia prima en uso: multi-company</field>
+            <field name="model_id" ref="model_cdv_raw_material_in_use"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- Reglas de registro: Parte de producción -->
+        <record id="cdv_production_entry_company_rule" model="ir.rule">
+            <field name="name">Parte de producción: multi-company</field>
+            <field name="model_id" ref="model_cdv_production_entry"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- Reglas de registro: Línea de parte de producción -->
+        <record id="cdv_production_entry_line_company_rule" model="ir.rule">
+            <field name="name">Línea de parte de producción: multi-company</field>
+            <field name="model_id" ref="model_cdv_production_entry_line"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+    </data>
+</odoo>
+

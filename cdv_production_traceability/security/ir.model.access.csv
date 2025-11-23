@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_cdv_raw_material_in_use_user,cdv.raw.material.in.use.user,model_cdv_raw_material_in_use,group_cdv_production_user,1,1,1,0
+access_cdv_raw_material_in_use_manager,cdv.raw.material.in.use.manager,model_cdv_raw_material_in_use,group_cdv_production_manager,1,1,1,1
+access_cdv_production_entry_user,cdv.production.entry.user,model_cdv_production_entry,group_cdv_production_user,1,1,1,0
+access_cdv_production_entry_manager,cdv.production.entry.manager,model_cdv_production_entry,group_cdv_production_manager,1,1,1,1
+access_cdv_production_entry_line_user,cdv.production.entry.line.user,model_cdv_production_entry_line,group_cdv_production_user,1,1,1,0
+access_cdv_production_entry_line_manager,cdv.production.entry.line.manager,model_cdv_production_entry_line,group_cdv_production_manager,1,1,1,1
+access_cdv_raw_material_wizard_user,cdv.raw.material.wizard.user,model_cdv_raw_material_wizard,group_cdv_production_user,1,1,1,1
+access_cdv_production_trace_report_user,cdv.production.trace.report.user,model_cdv_production_trace_report,group_cdv_production_user,1,1,1,1
+access_cdv_production_trace_report_line_user,cdv.production.trace.report.line.user,model_cdv_production_trace_report_line,group_cdv_production_user,1,1,1,1
+

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Extensión de vista de producto -->
+    <record id="product_template_form_view" model="ir.ui.view">
+        <field name="name">product.template.form.inherit.cdv</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='group_standard_price']" position="after">
+                <group string="Confitería del Valle" name="cdv_production">
+                    <field name="cdv_is_raw_material"/>
+                    <field name="cdv_is_finished_product"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
+
