@@ -52,11 +52,13 @@
         'views/cdv_production_entry_views.xml',
         'views/res_config_settings_views.xml',
         'views/product_template_views.xml',
-        'views/cdv_menus.xml',
 
-        # Wizards
+        # Wizards (deben cargarse antes de los menús que los referencian)
         'wizards/cdv_raw_material_wizard_views.xml',
         'wizards/cdv_production_trace_report_views.xml',
+
+        # Menús (deben cargarse después de las vistas y wizards)
+        'views/cdv_menus.xml',
 
         # Informes
         'report/cdv_traceability_report.xml',

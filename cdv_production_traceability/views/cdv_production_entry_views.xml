@@ -6,7 +6,7 @@
         <field name="name">cdv.production.entry.tree</field>
         <field name="model">cdv.production.entry</field>
         <field name="arch" type="xml">
-            <tree string="Partes de producción" decoration-muted="state=='cancelled'" decoration-info="state=='draft'">
+            <list string="Partes de producción" decoration-muted="state=='cancelled'" decoration-info="state=='draft'">
                 <field name="name" decoration-bf="1"/>
                 <field name="date"/>
                 <field name="user_id" widget="many2one_avatar_user"/>
@@ -17,7 +17,7 @@
                        decoration-success="state=='done'"
                        decoration-muted="state=='cancelled'"/>
                 <field name="company_id" groups="base.group_multi_company"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -70,11 +70,9 @@
                     <notebook>
                         <page string="Líneas de producción" name="lines">
                             <field name="line_ids" widget="section_and_note_one2many">
-                                <tree string="Productos producidos" editable="bottom">
+                                <list string="Productos producidos" editable="bottom">
                                     <field name="sequence" widget="handle"/>
-                                    <field name="product_id"
-                                           domain="[('detailed_type', '=', 'product')]"
-                                           required="1"/>
+                                    <field name="product_id" required="1"/>
                                     <field name="quantity" sum="total_quantity"/>
                                     <field name="uom_id" groups="uom.group_uom"/>
                                     <field name="lot_id" optional="show"/>
@@ -83,7 +81,7 @@
                                     <field name="company_id" column_invisible="1"/>
                                     <field name="date" column_invisible="1"/>
                                     <field name="state" column_invisible="1"/>
-                                </tree>
+                                </list>
                             </field>
                         </page>
                         <page string="Notas" name="notes">
@@ -177,7 +175,7 @@
                         domain="[('date', '&gt;=', (context_today() - relativedelta(weeks=1)).strftime('%Y-%m-%d'))]"/>
                 <filter string="Este mes" name="this_month"
                         domain="[('date', '&gt;=', (context_today() - relativedelta(months=1)).strftime('%Y-%m-%d'))]"/>
-                <group expand="0" string="Agrupar por">
+                <group>
                     <filter string="Estado" name="group_state" context="{'group_by': 'state'}"/>
                     <filter string="Fecha" name="group_date" context="{'group_by': 'date'}"/>
                     <filter string="Responsable" name="group_user" context="{'group_by': 'user_id'}"/>
@@ -191,7 +189,7 @@
     <record id="action_cdv_production_entry" model="ir.actions.act_window">
         <field name="name">Partes de producción diaria</field>
         <field name="res_model">cdv.production.entry</field>
-        <field name="view_mode">tree,kanban,form,calendar</field>
+        <field name="view_mode">list,kanban,form,calendar</field>
         <field name="context">{'search_default_this_month': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">

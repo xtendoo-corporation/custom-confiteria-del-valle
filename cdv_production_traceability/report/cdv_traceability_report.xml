@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Definición del reporte de trazabilidad -->
+    <record id="action_report_traceability" model="ir.actions.report">
+        <field name="name">Informe de trazabilidad</field>
+        <field name="model">cdv.production.trace.report</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">cdv_production_traceability.report_traceability_document</field>
+        <field name="report_file">cdv_production_traceability.report_traceability_document</field>
+        <field name="binding_model_id" ref="model_cdv_production_trace_report"/>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>
+

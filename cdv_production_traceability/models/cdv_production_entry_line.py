@@ -22,7 +22,6 @@ class CdvProductionEntryLine(models.Model):
         comodel_name='product.product',
         string='Producto terminado',
         required=True,
-        domain=[('detailed_type', '=', 'product')],
         index=True,
     )
     quantity = fields.Float(

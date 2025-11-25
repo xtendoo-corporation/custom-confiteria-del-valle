@@ -7,60 +7,35 @@
         <field name="model">res.config.settings</field>
         <field name="inherit_id" ref="stock.res_config_settings_view_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//div[hasclass('settings')]" position="inside">
-                <div class="app_settings_block" data-string="Confitería del Valle - Trazabilidad"
-                     string="Confitería del Valle - Trazabilidad"
-                     data-key="cdv_production_traceability">
-                    <h2>Trazabilidad de Producción</h2>
-                    <div class="row mt16 o_settings_container">
-                        <div class="col-12 col-lg-6 o_setting_box">
-                            <div class="o_setting_left_pane"/>
-                            <div class="o_setting_right_pane">
-                                <label string="Ubicaciones" for="cdv_raw_material_location_id"/>
-                                <div class="text-muted">
-                                    Configure las ubicaciones para materias primas y productos terminados
-                                </div>
-                                <div class="content-group mt16">
-                                    <div class="row">
-                                        <label for="cdv_raw_material_location_id"
-                                               class="col-lg-4 o_light_label" string="Materias primas"/>
-                                        <field name="cdv_raw_material_location_id"
-                                               class="oe_inline"
-                                               options="{'no_create': True}"/>
-                                    </div>
-                                    <div class="row">
-                                        <label for="cdv_finished_location_id"
-                                               class="col-lg-4 o_light_label" string="Productos terminados"/>
-                                        <field name="cdv_finished_location_id"
-                                               class="oe_inline"
-                                               options="{'no_create': True}"/>
-                                    </div>
-                                </div>
+            <xpath expr="//app[@name='stock']" position="after">
+                <app string="Confitería del Valle - Trazabilidad" name="cdv_production_traceability">
+                    <block title="Trazabilidad de Producción">
+                        <setting>
+                            <field name="cdv_raw_material_location_id" options="{'no_create': True}"/>
+                            <div class="text-muted">
+                                Ubicación predeterminada para materias primas
                             </div>
-                        </div>
-                        <div class="col-12 col-lg-6 o_setting_box">
-                            <div class="o_setting_left_pane">
-                                <field name="cdv_auto_validate_picking"/>
+                        </setting>
+                        <setting>
+                            <field name="cdv_finished_location_id" options="{'no_create': True}"/>
+                            <div class="text-muted">
+                                Ubicación predeterminada para productos terminados
                             </div>
-                            <div class="o_setting_right_pane">
-                                <label for="cdv_auto_validate_picking"/>
-                                <div class="text-muted">
-                                    Validar automáticamente los albaranes al confirmar partes de producción
-                                </div>
-                                <div class="content-group mt16">
-                                    <div class="row">
-                                        <label for="cdv_finished_picking_type_id"
-                                               class="col-lg-4 o_light_label" string="Tipo de albarán"/>
-                                        <field name="cdv_finished_picking_type_id"
-                                               class="oe_inline"
-                                               options="{'no_create': True}"
-                                               domain="[('code', 'in', ['incoming', 'internal'])]"/>
-                                    </div>
-                                </div>
+                        </setting>
+                        <setting>
+                            <field name="cdv_auto_validate_picking"/>
+                            <div class="text-muted">
+                                Validar automáticamente los albaranes al confirmar partes de producción
                             </div>
-                        </div>
-                    </div>
-                </div>
+                        </setting>
+                        <setting>
+                            <field name="cdv_finished_picking_type_id" options="{'no_create': True}" domain="[('code', 'in', ['incoming', 'internal'])]"/>
+                            <div class="text-muted">
+                                Tipo de albarán para productos terminados
+                            </div>
+                        </setting>
+                    </block>
+                </app>
             </xpath>
         </field>
     </record>

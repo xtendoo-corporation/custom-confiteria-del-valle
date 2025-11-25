@@ -13,18 +13,18 @@
                 </group>
                 <group string="Paso 1: Seleccione la materia prima" invisible="step != 'select_product'">
                     <field name="product_id"
-                           domain="[('detailed_type', '=', 'product')]"
                            options="{'no_create': True, 'no_create_edit': True}"
                            placeholder="Buscar por nombre, código o código de barras..."
                            required="step == 'select_product'"/>
                     <field name="date_from"/>
                     <field name="location_id" options="{'no_create': True}"/>
                 </group>
-                <group string="Paso 2: Seleccione el lote" invisible="step != 'select_lot'">
+                <group string="Paso 2: Seleccione o cree el lote" invisible="step != 'select_lot'">
                     <field name="product_id" readonly="1"/>
                     <field name="lot_id"
-                           domain="[('id', 'in', available_lot_ids)]"
+                           domain="[('product_id', '=', product_id)]"
                            context="{'default_product_id': product_id, 'default_company_id': company_id}"
+                           options="{'no_open': False, 'quick_create': True}"
                            required="step == 'select_lot'"/>
                     <field name="available_lot_ids" invisible="1"/>
                     <field name="date_from"/>
