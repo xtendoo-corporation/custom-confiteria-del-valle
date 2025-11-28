@@ -20,7 +20,6 @@ class CdvProductionEntry(models.Model):
         string='Fecha de producción',
         required=True,
         default=fields.Date.context_today,
-        states={'done': [('readonly', True)], 'cancelled': [('readonly', True)]},
         tracking=True,
         index=True,
     )
@@ -29,7 +28,6 @@ class CdvProductionEntry(models.Model):
         string='Compañía',
         required=True,
         default=lambda self: self.env.company,
-        states={'done': [('readonly', True)], 'cancelled': [('readonly', True)]},
         index=True,
     )
     state = fields.Selection(
@@ -55,7 +53,6 @@ class CdvProductionEntry(models.Model):
         comodel_name='stock.picking.type',
         string='Tipo de albarán',
         required=True,
-        states={'done': [('readonly', True)], 'cancelled': [('readonly', True)]},
         default=lambda self: self._default_picking_type_id(),
     )
     location_src_id = fields.Many2one(
@@ -74,7 +71,6 @@ class CdvProductionEntry(models.Model):
         comodel_name='cdv.production.entry.line',
         inverse_name='entry_id',
         string='Líneas de producción',
-        states={'done': [('readonly', True)], 'cancelled': [('readonly', True)]},
         copy=True,
     )
     total_lines = fields.Integer(
@@ -85,12 +81,10 @@ class CdvProductionEntry(models.Model):
         comodel_name='res.users',
         string='Responsable',
         default=lambda self: self.env.user,
-        states={'done': [('readonly', True)], 'cancelled': [('readonly', True)]},
         tracking=True,
     )
     notes = fields.Text(
         string='Notas',
-        states={'done': [('readonly', True)], 'cancelled': [('readonly', True)]},
     )
 
     def _default_picking_type_id(self):

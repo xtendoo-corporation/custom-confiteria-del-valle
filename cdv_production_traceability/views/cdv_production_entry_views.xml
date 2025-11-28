@@ -55,13 +55,13 @@
                     </div>
                     <group>
                         <group>
-                            <field name="date"/>
-                            <field name="user_id" widget="many2one_avatar_user"/>
+                            <field name="date" readonly="state in ['done', 'cancelled']"/>
+                            <field name="user_id" widget="many2one_avatar_user" readonly="state in ['done', 'cancelled']"/>
                             <field name="company_id" groups="base.group_multi_company"
-                                   options="{'no_create': True}"/>
+                                   options="{'no_create': True}" readonly="state in ['done', 'cancelled']"/>
                         </group>
                         <group>
-                            <field name="picking_type_id" options="{'no_create': True}"/>
+                            <field name="picking_type_id" options="{'no_create': True}" readonly="state in ['done', 'cancelled']"/>
                             <field name="location_src_id" readonly="1" optional="hide"/>
                             <field name="location_dest_id" readonly="1"/>
                             <field name="picking_id" readonly="1" optional="hide"/>
@@ -69,13 +69,13 @@
                     </group>
                     <notebook>
                         <page string="Líneas de producción" name="lines">
-                            <field name="line_ids" widget="section_and_note_one2many">
+                            <field name="line_ids" widget="section_and_note_one2many" readonly="state in ['done', 'cancelled']">
                                 <list string="Productos producidos" editable="bottom">
                                     <field name="sequence" widget="handle"/>
                                     <field name="product_id" required="1"/>
                                     <field name="quantity" sum="total_quantity"/>
                                     <field name="uom_id" groups="uom.group_uom"/>
-                                    <field name="lot_id" optional="show"/>
+                                    <field name="lot_id" optional="show" options="{'no_create': False, 'no_open': False}" context="{'default_product_id': product_id, 'default_company_id': company_id}"/>
                                     <field name="has_bom" column_invisible="1"/>
                                     <field name="bom_id" optional="hide" readonly="1"/>
                                     <field name="company_id" column_invisible="1"/>
@@ -85,7 +85,7 @@
                             </field>
                         </page>
                         <page string="Notas" name="notes">
-                            <field name="notes" placeholder="Notas adicionales sobre este parte de producción..."/>
+                            <field name="notes" placeholder="Notas adicionales sobre este parte de producción..." readonly="state in ['done', 'cancelled']"/>
                         </page>
                     </notebook>
                 </sheet>

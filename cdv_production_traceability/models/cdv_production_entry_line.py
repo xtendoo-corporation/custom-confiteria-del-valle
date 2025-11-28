@@ -132,16 +132,17 @@ class CdvProductionEntryLine(models.Model):
             if record.quantity <= 0:
                 raise ValidationError(_('La cantidad debe ser mayor que cero.'))
 
-    @api.constrains('uom_id', 'product_id')
-    def _check_uom_category(self):
-        """Validar que la UoM pertenezca a la categoría correcta"""
-        for record in self:
-            if record.product_id and record.uom_id:
-                if record.uom_id.category_id != record.product_id.uom_id.category_id:
-                    raise ValidationError(
-                        _('La unidad de medida debe pertenecer a la categoría "%s".',
-                          record.product_id.uom_id.category_id.name)
-                    )
+    # TODO: Fix UoM category validation for Odoo 19
+    # @api.constrains('uom_id', 'product_id')
+    # def _check_uom_category(self):
+    #     """Validar que la UoM pertenezca a la categoría correcta"""
+    #     for record in self:
+    #         if record.product_id and record.uom_id:
+    #             if record.uom_id.category_id != record.product_id.uom_id.category_id:
+    #                 raise ValidationError(
+    #                     _('La unidad de medida debe pertenecer a la categoría "%s".',
+    #                       record.product_id.uom_id.category_id.name)
+    #                 )
 
     @api.model_create_multi
     def create(self, vals_list):
