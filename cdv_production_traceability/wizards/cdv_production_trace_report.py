@@ -1,5 +1,6 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+from datetime import datetime
 
 
 class CdvProductionTraceReport(models.TransientModel):
@@ -102,11 +103,12 @@ class CdvProductionTraceReport(models.TransientModel):
                     continue
 
                 # Obtener BoM del producto
-                bom = self.env["mrp.bom"]._bom_find(
+                boms = self.env["mrp.bom"]._bom_find(
                     line.product_id,
                     company_id=self.company_id.id,
                     bom_type="normal",
                 )
+                bom = boms[line.product_id]
 
                 if not bom:
                     # Producto sin BoM - crear línea sin componentes
@@ -127,22 +129,33 @@ class CdvProductionTraceReport(models.TransientModel):
                     continue
 
                 # Procesar cada componente de la BoM
-                bom_obj = self.env["mrp.bom"].browse(bom[0].id)
+                bom_obj = bom
 
                 for bom_line in bom_obj.bom_line_ids:
                     component_product = bom_line.product_id
 
+                    # Convertir Date a Datetime para comparacion robusta
+                    entry_date_start = datetime.combine(entry.date, datetime.min.time())
+                    entry_date_end = datetime.combine(entry.date, datetime.max.time())
+
+                    search_domain = [
+                        ("product_id", "=", component_product.id),
+                        ("company_id", "=", self.company_id.id),
+                        ("date_from", "<=", entry_date_end),
+                        "|",
+                        ("date_to", "=", False),
+                        ("date_to", ">=", entry_date_start),
+                    ]
+
                     # Buscar materia prima en uso en la fecha de producción
-                    raw_material = self.env["cdv.raw.material.in.use"].search(
-                        [
-                            ("product_id", "=", component_product.id),
-                            ("company_id", "=", self.company_id.id),
-                            ("date_from", "<=", entry.date),
-                            "|",
-                            ("date_to", "=", False),
-                            ("date_to", ">=", entry.date),
-                        ],
-                        limit=1,
+                    # Usamos active_test=False para encontrar también materias primas finalizadas (inactivas)
+                    raw_material = (
+                        self.env["cdv.raw.material.in.use"]
+                        .with_context(active_test=False)
+                        .search(
+                            search_domain,
+                            limit=1,
+                        )
                     )
 
                     trace_status = "found" if raw_material else "missing"
