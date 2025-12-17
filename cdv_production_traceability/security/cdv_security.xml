@@ -34,27 +34,6 @@
             <field name="perm_unlink" eval="True"/>
         </record>
 
-        <!-- Reglas de registro: Parte de producción -->
-        <record id="cdv_production_entry_company_rule" model="ir.rule">
-            <field name="name">Parte de producción: multi-company</field>
-            <field name="model_id" ref="model_cdv_production_entry"/>
-            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-            <field name="perm_read" eval="True"/>
-            <field name="perm_write" eval="True"/>
-            <field name="perm_create" eval="True"/>
-            <field name="perm_unlink" eval="True"/>
-        </record>
-
-        <!-- Reglas de registro: Línea de parte de producción -->
-        <record id="cdv_production_entry_line_company_rule" model="ir.rule">
-            <field name="name">Línea de parte de producción: multi-company</field>
-            <field name="model_id" ref="model_cdv_production_entry_line"/>
-            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-            <field name="perm_read" eval="True"/>
-            <field name="perm_write" eval="True"/>
-            <field name="perm_create" eval="True"/>
-            <field name="perm_unlink" eval="True"/>
-        </record>
 
     </data>
 </odoo>

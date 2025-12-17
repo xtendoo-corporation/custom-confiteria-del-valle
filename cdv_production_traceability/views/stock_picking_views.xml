@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Vista tree para partes de producción -->
+    <record id="view_production_picking_tree" model="ir.ui.view">
+        <field name="name">stock.picking.production.tree</field>
+        <field name="model">stock.picking</field>
+        <field name="arch" type="xml">
+            <list string="Partes de Producción"
+                  decoration-info="state == 'draft'"
+                  decoration-muted="state == 'cancel'"
+                  decoration-success="state == 'done'">
+                <field name="name" string="Referencia"/>
+                <field name="lot_name" string="Lote de Producción"/>
+                <field name="scheduled_date" string="Fecha Planificada"/>
+                <field name="partner_id" string="Compañía"/>
+                <field name="picking_type_id" string="Tipo de Operación"/>
+                <field name="state" string="Estado"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state in ('waiting', 'confirmed', 'assigned')"
+                       decoration-success="state == 'done'"
+                       decoration-muted="state == 'cancel'"
+                       widget="badge"/>
+                <field name="is_production_entry" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Heredar de la vista form de stock.picking -->
+    <record id="view_production_picking_form" model="ir.ui.view">
+        <field name="name">stock.picking.production.form</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <!-- Mostrar solo para partes de producción -->
+            <xpath expr="//form" position="attributes">
+                <attribute name="invisible">is_production_entry != True</attribute>
+            </xpath>
+
+            <!-- Agregar campo de lote de producción en su propia línea -->
+            <xpath expr="//field[@name='picking_type_id']/.." position="after">
+                <group>
+                    <field name="lot_name"
+                           string="Número de lote"
+                           placeholder="Se generará automáticamente"
+                           readonly="state != 'draft'"
+                           invisible="is_production_entry != True"/>
+                </group>
+            </xpath>
+
+            <!-- Ocultar campo partner_id y su etiqueta para partes de producción -->
+            <xpath expr="//field[@name='partner_id']/.." position="attributes">
+                <attribute name="invisible">is_production_entry == True</attribute>
+            </xpath>
+
+            <!-- Ocultar botón Mark as Todo para partes de producción -->
+            <xpath expr="//button[@name='action_assign']" position="attributes">
+                <attribute name="invisible">is_production_entry == True</attribute>
+            </xpath>
+
+            <!-- Agregar botón de procesamiento -->
+            <xpath expr="//header/button[@name='action_confirm']" position="before">
+                <button name="action_process_production"
+                        string="Procesar Producción"
+                        type="object"
+                        class="oe_highlight"
+                        invisible="state not in ['draft', 'confirmed', 'waiting', 'assigned'] or is_production_entry != True"
+                        help="Asigna cantidades, lotes y valida el albarán en un solo paso"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Acción específica para Partes de Producción -->
+    <record id="action_production_picking" model="ir.actions.act_window">
+        <field name="name">Partes de Producción</field>
+        <field name="res_model">stock.picking</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('is_production_entry', '=', True)]</field>
+        <field name="context">{
+            'default_is_production_entry': True,
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Crear un nuevo parte de producción
+            </p>
+            <p>
+                Los partes de producción permiten registrar múltiples productos
+                elaborados simultáneamente con un mismo lote.
+            </p>
+        </field>
+    </record>
+
+    <!-- Especificar las vistas para la acción -->
+    <record id="action_production_picking_view_tree" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_production_picking_tree"/>
+        <field name="act_window_id" ref="action_production_picking"/>
+    </record>
+
+    <record id="action_production_picking_view_form" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_production_picking_form"/>
+        <field name="act_window_id" ref="action_production_picking"/>
+    </record>
+
+</odoo>
+

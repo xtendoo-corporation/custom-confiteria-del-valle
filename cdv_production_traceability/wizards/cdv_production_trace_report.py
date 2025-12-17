@@ -1,6 +1,6 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
-from datetime import datetime
+from datetime import datetime, date
 
 
 class CdvProductionTraceReport(models.TransientModel):
@@ -10,7 +10,7 @@ class CdvProductionTraceReport(models.TransientModel):
     date_from = fields.Date(
         string="Fecha desde",
         required=True,
-        default=fields.Date.context_today,
+        default=lambda self: date(date.today().year, 1, 1),
     )
     date_to = fields.Date(
         string="Fecha hasta",
@@ -48,6 +48,39 @@ class CdvProductionTraceReport(models.TransientModel):
         string="Estado",
         default="draft",
     )
+    total_productions = fields.Integer(
+        string="Total de producciones",
+        compute="_compute_totals",
+        store=False,
+    )
+    total_components = fields.Integer(
+        string="Total de componentes rastreados",
+        compute="_compute_totals",
+        store=False,
+    )
+    total_qty_produced = fields.Float(
+        string="Total de unidades producidas",
+        compute="_compute_totals",
+        store=False,
+    )
+
+    @api.depends("line_ids")
+    def _compute_totals(self):
+        """Calcular totales para el resumen"""
+        for record in self:
+            # Contar producciones únicas (producto + lote)
+            productions = record.line_ids.mapped(lambda l: (l.finished_product_id.id, l.finished_lot_id.id))
+            record.total_productions = len(set(productions))
+            # Contar componentes únicos encontrados
+            record.total_components = len(record.line_ids.filtered(lambda l: l.trace_status == 'found'))
+            # Sumar total de unidades producidas
+            # Agrupamos por producto y lote para no contar duplicados
+            qty_dict = {}
+            for line in record.line_ids:
+                key = (line.finished_product_id.id, line.finished_lot_id.id)
+                if key not in qty_dict:
+                    qty_dict[key] = line.finished_qty
+            record.total_qty_produced = sum(qty_dict.values())
 
     @api.onchange("product_id")
     def _onchange_product_id(self):
@@ -78,13 +111,14 @@ class CdvProductionTraceReport(models.TransientModel):
 
         # Buscar partes de producción en el rango
         domain = [
+            ("is_production_entry", "=", True),
             ("state", "=", "done"),
-            ("date", ">=", self.date_from),
-            ("date", "<=", self.date_to),
+            ("date_done", ">=", self.date_from),
+            ("date_done", "<=", self.date_to),
             ("company_id", "=", self.company_id.id),
         ]
 
-        production_entries = self.env["cdv.production.entry"].search(domain)
+        production_entries = self.env["stock.picking"].search(domain)
 
         if not production_entries:
             raise UserError(
@@ -95,11 +129,16 @@ class CdvProductionTraceReport(models.TransientModel):
         lines_to_create = []
 
         for entry in production_entries:
-            for line in entry.line_ids:
-                # Filtrar por producto y lote si están especificados
+            for line in entry.move_ids:
+                # Filtrar por producto si está especificado
                 if self.product_id and line.product_id != self.product_id:
                     continue
-                if self.lot_id and line.lot_id != self.lot_id:
+
+                # Obtener los lotes del movimiento
+                move_lots = line.move_line_ids.mapped('lot_id')
+
+                # Filtrar por lote si está especificado
+                if self.lot_id and self.lot_id not in move_lots:
                     continue
 
                 # Obtener BoM del producto
@@ -112,20 +151,21 @@ class CdvProductionTraceReport(models.TransientModel):
 
                 if not bom:
                     # Producto sin BoM - crear línea sin componentes
-                    lines_to_create.append(
-                        {
-                            "wizard_id": self.id,
-                            "production_date": entry.date,
-                            "finished_product_id": line.product_id.id,
-                            "finished_lot_id": line.lot_id.id if line.lot_id else False,
-                            "finished_qty": line.quantity,
-                            "finished_uom_id": line.uom_id.id,
-                            "component_product_id": False,
-                            "component_qty_standard": 0.0,
-                            "component_lot_id": False,
-                            "trace_status": "missing",
-                        }
-                    )
+                    for move_line in line.move_line_ids:
+                        lines_to_create.append(
+                            {
+                                "wizard_id": self.id,
+                                "production_date": entry.date_done.date() if entry.date_done else entry.scheduled_date,
+                                "finished_product_id": line.product_id.id,
+                                "finished_lot_id": move_line.lot_id.id if move_line.lot_id else False,
+                                "finished_qty": move_line.quantity,
+                                "finished_uom_id": line.product_uom.id,
+                                "component_product_id": False,
+                                "component_qty_standard": 0.0,
+                                "component_lot_id": False,
+                                "trace_status": "missing",
+                            }
+                        )
                     continue
 
                 # Procesar cada componente de la BoM
@@ -135,8 +175,9 @@ class CdvProductionTraceReport(models.TransientModel):
                     component_product = bom_line.product_id
 
                     # Convertir Date a Datetime para comparacion robusta
-                    entry_date_start = datetime.combine(entry.date, datetime.min.time())
-                    entry_date_end = datetime.combine(entry.date, datetime.max.time())
+                    prod_date = entry.date_done.date() if entry.date_done else entry.scheduled_date
+                    entry_date_start = datetime.combine(prod_date, datetime.min.time())
+                    entry_date_end = datetime.combine(prod_date, datetime.max.time())
 
                     search_domain = [
                         ("product_id", "=", component_product.id),
@@ -147,36 +188,49 @@ class CdvProductionTraceReport(models.TransientModel):
                         ("date_to", ">=", entry_date_start),
                     ]
 
-                    # Buscar materia prima en uso en la fecha de producción
+                    # Buscar TODAS las materias primas en uso en la fecha de producción
                     # Usamos active_test=False para encontrar también materias primas finalizadas (inactivas)
-                    raw_material = (
+                    raw_materials = (
                         self.env["cdv.raw.material.in.use"]
                         .with_context(active_test=False)
-                        .search(
-                            search_domain,
-                            limit=1,
-                        )
+                        .search(search_domain)
                     )
 
-                    trace_status = "found" if raw_material else "missing"
-                    component_lot = raw_material.lot_id if raw_material else False
-
-                    lines_to_create.append(
-                        {
-                            "wizard_id": self.id,
-                            "production_date": entry.date,
-                            "finished_product_id": line.product_id.id,
-                            "finished_lot_id": line.lot_id.id if line.lot_id else False,
-                            "finished_qty": line.quantity,
-                            "finished_uom_id": line.uom_id.id,
-                            "component_product_id": component_product.id,
-                            "component_qty_standard": bom_line.product_qty,
-                            "component_lot_id": (
-                                component_lot.id if component_lot else False
-                            ),
-                            "trace_status": trace_status,
-                        }
-                    )
+                    if not raw_materials:
+                        # No se encontró ninguna materia prima en uso - crear línea sin componente
+                        for move_line in line.move_line_ids:
+                            lines_to_create.append(
+                                {
+                                    "wizard_id": self.id,
+                                    "production_date": prod_date,
+                                    "finished_product_id": line.product_id.id,
+                                    "finished_lot_id": move_line.lot_id.id if move_line.lot_id else False,
+                                    "finished_qty": move_line.quantity,
+                                    "finished_uom_id": line.product_uom.id,
+                                    "component_product_id": component_product.id,
+                                    "component_qty_standard": bom_line.product_qty,
+                                    "component_lot_id": False,
+                                    "trace_status": "missing",
+                                }
+                            )
+                    else:
+                        # Crear una línea por cada lote del producto terminado y por cada lote de materia prima
+                        for move_line in line.move_line_ids:
+                            for raw_material in raw_materials:
+                                lines_to_create.append(
+                                    {
+                                        "wizard_id": self.id,
+                                        "production_date": prod_date,
+                                        "finished_product_id": line.product_id.id,
+                                        "finished_lot_id": move_line.lot_id.id if move_line.lot_id else False,
+                                        "finished_qty": move_line.quantity,
+                                        "finished_uom_id": line.product_uom.id,
+                                        "component_product_id": component_product.id,
+                                        "component_qty_standard": bom_line.product_qty,
+                                        "component_lot_id": raw_material.lot_id.id if raw_material.lot_id else False,
+                                        "trace_status": "found",
+                                    }
+                                )
 
         if lines_to_create:
             self.env["cdv.production.trace.report.line"].create(lines_to_create)

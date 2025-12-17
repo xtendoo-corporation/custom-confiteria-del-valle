@@ -22,10 +22,24 @@
               sequence="10"
               groups="group_cdv_production_user"/>
 
-    <menuitem id="menu_cdv_raw_material_wizard"
-              name="Poner en producción"
-              parent="menu_cdv_raw_materials"
-              action="action_cdv_raw_material_wizard"
+    <!-- Submenú: Productos -->
+    <menuitem id="menu_cdv_products"
+              name="Productos"
+              parent="menu_cdv_production_root"
+              sequence="15"
+              groups="group_cdv_production_user"/>
+
+    <menuitem id="menu_cdv_products_products"
+              name="Productos"
+              parent="menu_cdv_products"
+              action="product.product_template_action"
+              sequence="10"
+              groups="group_cdv_production_user"/>
+
+    <menuitem id="menu_cdv_products_bom"
+              name="Listas de materiales"
+              parent="menu_cdv_products"
+              action="mrp.mrp_bom_form_action"
               sequence="20"
               groups="group_cdv_production_user"/>
 
@@ -39,7 +53,7 @@
     <menuitem id="menu_cdv_production_entry"
               name="Partes de producción"
               parent="menu_cdv_production"
-              action="action_cdv_production_entry"
+              action="action_production_picking"
               sequence="10"
               groups="group_cdv_production_user"/>
 

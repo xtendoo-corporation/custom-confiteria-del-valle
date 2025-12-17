@@ -8,43 +8,51 @@
                     <div class="page">
                         <div class="oe_structure"/>
 
-                        <h2>Informe de trazabilidad de producción</h2>
+                        <h2>Informe de Trazabilidad de Producción</h2>
 
+                        <!-- Filtros y Resumen en dos columnas -->
                         <div class="row mt32 mb32">
                             <div class="col-6">
-                                <strong>Fecha desde:</strong> <span t-field="o.date_from"/><br/>
-                                <strong>Fecha hasta:</strong> <span t-field="o.date_to"/><br/>
+                                <h5>Filtros</h5>
+                                <strong>Desde:</strong> <span t-field="o.date_from"/><strong> hasta </strong><span t-field="o.date_to"/><br/>
+                                <strong>Producto:</strong>
+                                <span t-if="o.product_id" t-field="o.product_id"/>
+                                <span t-else="">Todos</span><br/>
+                                <strong>Lote:</strong>
+                                <span t-if="o.lot_id" t-field="o.lot_id"/>
+                                <span t-else="">Todos</span><br/>
                             </div>
                             <div class="col-6">
-                                <strong>Producto:</strong> <span t-field="o.product_id"/><br/>
-                                <strong>Lote:</strong> <span t-field="o.lot_id"/><br/>
+                                <h5>Resumen</h5>
+                                <strong>Total de producciones:</strong> <span t-esc="o.total_productions"/><br/>
+                                <strong>Total de unidades producidas:</strong> <span t-esc="o.total_qty_produced"/><br/>
+                                <strong>Total de componentes rastreados:</strong> <span t-esc="o.total_components"/><br/>
                             </div>
                         </div>
 
-                        <table class="table table-sm">
+                        <!-- Tabla de trazabilidad -->
+                        <table class="table table-sm table-bordered">
                             <thead>
-                                <tr style="background-color: #f0f0f0;">
+                                <tr style="background-color: #2196F3; color: white;">
                                     <th>Fecha</th>
-                                    <th>Producto terminado</th>
-                                    <th>Lote</th>
-                                    <th>Cantidad</th>
-                                    <th>Componente</th>
-                                    <th>Lote componente</th>
+                                    <th>Materia Prima</th>
+                                    <th>Lote Materia Prima</th>
+                                    <th>Cantidad Estándar</th>
                                     <th>Estado</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <t t-foreach="o.line_ids" t-as="line">
-                                    <tr t-att-class="'table-danger' if line.trace_status == 'missing' else 'table-success'">
+                                    <tr t-att-style="'background-color: #ffebee;' if line.trace_status == 'missing' else 'background-color: #e8f5e9;'">
                                         <td><span t-field="line.production_date"/></td>
-                                        <td><span t-field="line.finished_product_id"/></td>
-                                        <td><span t-field="line.finished_lot_id"/></td>
-                                        <td>
-                                            <span t-field="line.finished_qty"/>
-                                            <span t-field="line.finished_uom_id"/>
-                                        </td>
                                         <td><span t-field="line.component_product_id"/></td>
-                                        <td><span t-field="line.component_lot_id"/></td>
+                                        <td>
+                                            <span t-if="line.component_lot_id" t-field="line.component_lot_id"/>
+                                            <span t-else="" style="color: #999;">-</span>
+                                        </td>
+                                        <td>
+                                            <span t-field="line.component_qty_standard"/>
+                                        </td>
                                         <td>
                                             <t t-if="line.trace_status == 'found'">
                                                 <span class="badge badge-success">✓ Encontrado</span>
@@ -58,9 +66,11 @@
                             </tbody>
                         </table>
 
-                        <div class="row mt32">
-                            <div class="col-12">
-                                <p><strong>Total de líneas:</strong> <t t-esc="len(o.line_ids)"/></p>
+                        <div class="row mt16">
+                            <div class="col-12 text-muted">
+                                <small>
+                                    <strong>Total de registros:</strong> <t t-esc="len(o.line_ids)"/> líneas
+                                </small>
                             </div>
                         </div>
 

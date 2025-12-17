@@ -7,15 +7,10 @@
         <field name="model">cdv.production.trace.report.line</field>
         <field name="arch" type="xml">
             <list decoration-danger="trace_status == 'missing'" decoration-success="trace_status == 'found'" create="false" edit="false" delete="false">
-                <field name="production_date"/>
-                <field name="finished_product_id"/>
-                <field name="finished_lot_id"/>
-                <field name="finished_qty"/>
-                <field name="finished_uom_id"/>
-                <field name="component_product_id"/>
-                <field name="component_qty_standard"/>
-                <field name="component_lot_id"/>
-                <field name="trace_status" widget="badge"/>
+                <field name="production_date" string="Fecha"/>
+                <field name="component_product_id" string="Materia Prima"/>
+                <field name="component_lot_id" string="Lote Materia Prima"/>
+                <field name="trace_status" widget="badge" string="Estado"/>
             </list>
         </field>
     </record>
@@ -27,10 +22,6 @@
         <field name="arch" type="xml">
             <form string="Informe de trazabilidad">
                 <header>
-                    <button string="Calcular trazabilidad" name="action_compute_trace" type="object"
-                            class="btn-primary" invisible="state == 'computed'"/>
-                    <button string="Imprimir informe" name="action_print_report" type="object"
-                            class="btn-primary" invisible="state != 'computed'"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,computed"/>
                 </header>
                 <sheet>
@@ -42,15 +33,24 @@
                             <field name="product_id" options="{'no_create': True}"/>
                             <field name="lot_id" options="{'no_create': True}"/>
                         </group>
+                        <group string="Resumen" invisible="state != 'computed'">
+                            <field name="total_productions" readonly="1"/>
+                            <field name="total_qty_produced" readonly="1"/>
+                            <field name="total_components" readonly="1"/>
+                        </group>
                     </group>
                     <notebook invisible="state != 'computed'">
-                        <page string="Trazabilidad" name="trace_lines">
+                        <page string="Trazabilidad por Producto" name="trace_lines">
                             <field name="line_ids" nolabel="1"/>
                         </page>
                     </notebook>
                 </sheet>
                 <footer>
-                    <button string="Cerrar" class="btn-secondary" special="cancel"/>
+                    <button string="Calcular trazabilidad" name="action_compute_trace" type="object"
+                            class="btn-primary" invisible="state == 'computed'"/>
+                    <button string="Imprimir informe" name="action_print_report" type="object"
+                            class="btn-primary" invisible="state != 'computed'"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>
         </field>

@@ -10,25 +10,24 @@
         Características principales:
 
         * Gestión de materias primas en uso con interfaz táctil
-        * Partes de producción diaria con generación automática de albaranes
-        * Lotes automáticos por fecha de producción (DD-MM-YY)
+        * Partes de producción para registrar múltiples productos a la vez
+        * Lotes automáticos por fecha (formato DDMMYY) compartidos entre todos los productos
+        * Integración con albaranes de entrada (stock.picking)
         * Informes de trazabilidad completos para inspecciones sanitarias
-        * Integración completa con BoM (Listas de materiales)
+        * Integración con BoM (Listas de materiales)
 
         Configuración inicial:
 
         1. Ir a Inventario > Configuración > Ajustes
         2. Buscar la sección "Confitería del Valle - Trazabilidad"
-        3. Configurar:
-           - Ubicación de materias primas
-           - Ubicación de productos terminados
-           - Tipo de albarán para productos terminados
+        3. Configurar ubicaciones de materias primas y productos terminados
 
         Uso diario:
 
-        1. Poner materias primas en producción (Producción > Materia prima en uso)
-        2. Registrar partes de producción diaria (Producción > Partes de producción)
-        3. Consultar trazabilidad (Producción > Informe de trazabilidad)
+        1. Poner materias primas en producción (Producción > Materias primas > Materias primas en uso)
+        2. Crear partes de producción con múltiples productos (Producción > Producción diaria > Partes de producción)
+        3. El número de lote se genera automáticamente en formato DDMMYY y se aplica a todos los productos
+        4. Consultar trazabilidad (Producción > Informes > Informe de trazabilidad)
     """,
     "author": "Xtendoo",
     "website": "https://xtendoo.es",
@@ -43,11 +42,9 @@
         # Seguridad
         "security/cdv_security.xml",
         "security/ir.model.access.csv",
-        # Datos
-        "data/sequence_data.xml",
         # Vistas
         "views/cdv_raw_material_in_use_views.xml",
-        "views/cdv_production_entry_views.xml",
+        "views/stock_picking_views.xml",
         "views/res_config_settings_views.xml",
         "views/product_template_views.xml",
         # Wizards (deben cargarse antes de los menús que los referencian)
