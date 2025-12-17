@@ -73,18 +73,24 @@ class CdvRawMaterialInUse(models.Model):
     # MÉTODOS DE NEGOCIO PARA GESTIÓN DE MATERIAS PRIMAS EN USO
     # -------------------------------------------------------------------------
 
-    def _close_active_raw_material(
-        self, product_id, company_id, location_id, closing_date
-    ):
+    def _close_active_raw_material(self, vals):
         """
-        Cierra el registro activo de una materia prima específica.
+        Cierra el registro activo de una materia prima específica
+        utilizando los valores del nuevo registro.
 
-        :param product_id: ID del producto
-        :param company_id: ID de la compañía
-        :param location_id: ID de la ubicación (puede ser False)
-        :param closing_date: Fecha de cierre a establecer
+        :param vals: Diccionario de valores para el nuevo registro
         :return: Recordset de los registros cerrados
         """
+        product_id = vals.get("product_id")
+        company_id = vals.get("company_id") or self.env.company.id
+        location_id = vals.get("location_id")
+
+        # Si no hay fecha de inicio, usar ahora (aunque create ya lo asegura)
+        closing_date = vals.get("date_from") or fields.Datetime.now()
+
+        if not product_id:
+            return self.browse()
+
         domain = [
             ("product_id", "=", product_id),
             ("company_id", "=", company_id),
@@ -131,10 +137,6 @@ class CdvRawMaterialInUse(models.Model):
             ),
         }
 
-    # -------------------------------------------------------------------------
-    # MÉTODOS CRUD SOBRESCRITOS
-    # -------------------------------------------------------------------------
-
     @api.model_create_multi
     def create(self, vals_list):
         """Crear nuevos registros de materia prima en uso."""
@@ -147,50 +149,51 @@ class CdvRawMaterialInUse(models.Model):
 
             # Si el registro no viene cerrado, cerrar el activo anterior
             if not vals.get("date_to"):
-                product_id = vals.get("product_id")
-                company_id = vals.get("company_id", self.env.company.id)
-                location_id = vals.get("location_id", False)
-                closing_date = vals["date_from"]
-
                 # Cerrar el registro activo anterior si existe
-                self._close_active_raw_material(
-                    product_id, company_id, location_id, closing_date
-                )
+                self._close_active_raw_material(vals)
 
         return super().create(vals_list)
+
+    def _process_lot_change_on_write(self, vals):
+        """
+        Procesa el cambio de lote: cierra registros actuales y crea nuevos.
+        Retorna: los registros que no fueron afectados por el cambio (deben procesarse normalmente).
+        """
+        if "lot_id" not in vals:
+            return self
+
+        records_to_close = self.filtered(
+            lambda r: not r.date_to and r.lot_id.id != vals.get("lot_id")
+        )
+
+        if not records_to_close:
+            return self
+
+        now = fields.Datetime.now()
+        new_records_vals = []
+
+        for record in records_to_close:
+            new_records_vals.append(self._prepare_new_record_vals(record, vals))
+
+        # Cerrar los registros actuales
+        super(CdvRawMaterialInUse, records_to_close).write({"date_to": now})
+
+        # Crear los nuevos registros
+        if new_records_vals:
+            super(CdvRawMaterialInUse, self).create(new_records_vals)
+
+        return self - records_to_close
 
     def write(self, vals):
         """
         Cuando se cambia el lote en un registro activo, cerrar el actual y crear uno nuevo.
         Esto asegura que siempre se mantenga el historial de uso.
         """
-        # Si se está cambiando el lote en registros activos
-        if "lot_id" in vals:
-            records_to_close = self.filtered(
-                lambda r: not r.date_to and r.lot_id.id != vals.get("lot_id")
-            )
+        remaining = self._process_lot_change_on_write(vals)
 
-            if records_to_close:
-                now = fields.Datetime.now()
-                new_records_vals = []
-
-                for record in records_to_close:
-                    new_records_vals.append(self._prepare_new_record_vals(record, vals))
-
-                # Cerrar los registros actuales
-                super(CdvRawMaterialInUse, records_to_close).write({"date_to": now})
-
-                # Crear los nuevos registros
-                if new_records_vals:
-                    super(CdvRawMaterialInUse, self).create(new_records_vals)
-
-                # Excluir estos registros del write normal
-                remaining = self - records_to_close
-                if remaining:
-                    return super(CdvRawMaterialInUse, remaining).write(vals)
-                return True
-
-        return super().write(vals)
+        if remaining:
+            return super(CdvRawMaterialInUse, remaining).write(vals)
+        return True
 
     # -------------------------------------------------------------------------
     # MÉTODO PÚBLICO PARA PONER EN USO UNA MATERIA PRIMA
@@ -201,7 +204,8 @@ class CdvRawMaterialInUse(models.Model):
     ):
         """
         Pone en uso una materia prima con un lote específico.
-        Si ya existe una materia prima activa del mismo producto, la finaliza automáticamente.
+        Si ya existe una materia prima activa del mismo producto, la finaliza automáticamente
+        (manejado por el método create).
 
         :param product_id: ID del producto a poner en uso
         :param lot_id: ID del lote
@@ -215,10 +219,8 @@ class CdvRawMaterialInUse(models.Model):
         if not company_id:
             company_id = self.env.company.id
 
-        # Cerrar el registro activo anterior si existe
-        self._close_active_raw_material(product_id, company_id, location_id, date_from)
-
         # Crear el nuevo registro
+        # La lógica de cierre del anterior se maneja automáticamente en create()
         return self.create(
             {
                 "product_id": product_id,

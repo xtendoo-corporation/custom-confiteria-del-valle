@@ -129,11 +129,25 @@
         </field>
     </record>
 
+    <!-- Vista Calendar de materia prima en uso -->
+    <record id="view_cdv_raw_material_in_use_calendar" model="ir.ui.view">
+        <field name="name">cdv.raw.material.in.use.calendar</field>
+        <field name="model">cdv.raw.material.in.use</field>
+        <field name="arch" type="xml">
+            <calendar string="Materias primas en uso" date_start="date_from" date_stop="date_to"
+                color="product_id" mode="month" quick_create="0">
+                <field name="product_id" />
+                <field name="lot_id" />
+                <field name="state" />
+            </calendar>
+        </field>
+    </record>
+
     <!-- Acción para materias primas en uso -->
     <record id="action_cdv_raw_material_in_use" model="ir.actions.act_window">
         <field name="name">Materias primas en uso</field>
         <field name="res_model">cdv.raw.material.in.use</field>
-        <field name="view_mode">list,kanban,form</field>
+        <field name="view_mode">list,kanban,calendar,form</field>
         <field name="context">{}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
