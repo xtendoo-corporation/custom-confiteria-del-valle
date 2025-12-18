@@ -42,19 +42,19 @@
         # Seguridad
         "security/cdv_security.xml",
         "security/ir.model.access.csv",
-        # Vistas
+        # Wizards (deben cargarse antes que las vistas que los referencian)
+        "wizards/cdv_production_trace_report_views.xml",
+        "wizards/cdv_forward_trace_report_views.xml",
+        # Vistas (se cargan después de los wizards)
         "views/cdv_raw_material_in_use_views.xml",
         "views/stock_picking_views.xml",
         "views/res_config_settings_views.xml",
         "views/product_template_views.xml",
-        # Wizards (deben cargarse antes de los menús que los referencian)
-        "wizards/cdv_raw_material_wizard_views.xml",
-        "wizards/cdv_production_trace_report_views.xml",
         # Menús (deben cargarse después de las vistas y wizards)
         "views/cdv_menus.xml",
         # Informes
         "report/cdv_traceability_report.xml",
-        "report/cdv_traceability_report_template.xml",
+        "report/cdv_forward_traceability_report.xml",
     ],
     "installable": True,
     "application": True,

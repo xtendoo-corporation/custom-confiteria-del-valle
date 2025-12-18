@@ -20,11 +20,11 @@
         <field name="name">cdv.production.trace.report.form</field>
         <field name="model">cdv.production.trace.report</field>
         <field name="arch" type="xml">
-            <form string="Informe de trazabilidad">
-                <header>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,computed"/>
-                </header>
+            <form string="Informe de Producto Elaborado">
                 <sheet>
+                    <div class="alert alert-warning" role="alert" invisible="not warning_message">
+                        <field name="warning_message" nolabel="1"/>
+                    </div>
                     <group>
                         <group string="Filtros">
                             <field name="company_id" invisible="1"/>
@@ -33,23 +33,25 @@
                             <field name="product_id" options="{'no_create': True}"/>
                             <field name="lot_id" options="{'no_create': True}"/>
                         </group>
-                        <group string="Resumen" invisible="state != 'computed'">
+                        <group string="Resumen" invisible="not line_ids">
                             <field name="total_productions" readonly="1"/>
                             <field name="total_qty_produced" readonly="1"/>
                             <field name="total_components" readonly="1"/>
                         </group>
                     </group>
-                    <notebook invisible="state != 'computed'">
-                        <page string="Trazabilidad por Producto" name="trace_lines">
+                    <notebook invisible="not line_ids">
+                        <page string="Detalle de Materias Primas" name="trace_lines">
                             <field name="line_ids" nolabel="1"/>
                         </page>
                     </notebook>
                 </sheet>
                 <footer>
                     <button string="Calcular trazabilidad" name="action_compute_trace" type="object"
-                            class="btn-primary" invisible="state == 'computed'"/>
+                            class="btn-primary" invisible="line_ids"/>
                     <button string="Imprimir informe" name="action_print_report" type="object"
-                            class="btn-primary" invisible="state != 'computed'"/>
+                            class="btn-primary" invisible="not line_ids"/>
+                    <button string="Nueva búsqueda" name="action_reset" type="object"
+                            class="btn-secondary" invisible="not line_ids"/>
                     <button string="Cancelar" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>
@@ -58,7 +60,7 @@
 
     <!-- Acción del wizard -->
     <record id="action_cdv_production_trace_report" model="ir.actions.act_window">
-        <field name="name">Informe de trazabilidad</field>
+        <field name="name">Informe de Producto Elaborado</field>
         <field name="res_model">cdv.production.trace.report</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>

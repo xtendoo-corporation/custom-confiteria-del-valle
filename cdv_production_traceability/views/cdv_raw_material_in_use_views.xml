@@ -33,6 +33,18 @@
                     <field name="state" widget="statusbar" statusbar_visible="in_use,finished" />
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="%(action_cdv_forward_trace_report)d"
+                                type="action"
+                                class="oe_stat_button"
+                                icon="fa-search"
+                                context="{'default_raw_material_id': product_id, 'default_raw_material_lot_id': lot_id}">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Trazabilidad</span>
+                                <span class="o_stat_text">hacia adelante</span>
+                            </div>
+                        </button>
+                    </div>
                     <div class="oe_title">
                         <h1>
                             <field name="name" readonly="1" />

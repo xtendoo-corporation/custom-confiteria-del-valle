@@ -21,12 +21,14 @@ class CdvProductionTraceReport(models.TransientModel):
         comodel_name="product.product",
         string="Producto terminado",
         domain=[("is_storable", "=", True)],
-        help="Dejar vacío para todos los productos",
+        required=True,
+        help="Producto elaborado del que se desea conocer la trazabilidad",
     )
     lot_id = fields.Many2one(
         comodel_name="stock.lot",
         string="Lote",
-        help="Dejar vacío para todos los lotes",
+        required=True,
+        help="Lote del producto elaborado",
     )
     company_id = fields.Many2one(
         comodel_name="res.company",
@@ -34,19 +36,15 @@ class CdvProductionTraceReport(models.TransientModel):
         required=True,
         default=lambda self: self.env.company,
     )
+    warning_message = fields.Html(
+        string="Mensaje de advertencia",
+        readonly=True,
+    )
     line_ids = fields.One2many(
         comodel_name="cdv.production.trace.report.line",
         inverse_name="wizard_id",
         string="Líneas de trazabilidad",
         readonly=True,
-    )
-    state = fields.Selection(
-        selection=[
-            ("draft", "Borrador"),
-            ("computed", "Calculado"),
-        ],
-        string="Estado",
-        default="draft",
     )
     total_productions = fields.Integer(
         string="Total de producciones",
@@ -106,8 +104,9 @@ class CdvProductionTraceReport(models.TransientModel):
                 _("La fecha desde debe ser menor o igual a la fecha hasta.")
             )
 
-        # Limpiar líneas anteriores
+        # Limpiar líneas anteriores y mensaje de advertencia
         self.line_ids.unlink()
+        self.warning_message = False
 
         # Buscar partes de producción en el rango
         domain = [
@@ -234,8 +233,29 @@ class CdvProductionTraceReport(models.TransientModel):
 
         if lines_to_create:
             self.env["cdv.production.trace.report.line"].create(lines_to_create)
-
-        self.state = "computed"
+            self.warning_message = False
+        else:
+            # Mostrar mensaje de advertencia en el wizard en lugar de popup
+            self.warning_message = """
+                <h4 class="alert-heading">
+                    <i class="fa fa-exclamation-triangle"></i>
+                    No se encontraron datos de trazabilidad
+                </h4>
+                <p>
+                    No se encontraron datos de trazabilidad para el producto
+                    <strong>%s</strong> (Lote: <strong>%s</strong>)
+                    en el período seleccionado.
+                </p>
+                <hr/>
+                <p class="mb-0">
+                    <strong>Verifique que:</strong>
+                </p>
+                <ul>
+                    <li>El producto y lote sean correctos</li>
+                    <li>Existan partes de producción en el período indicado</li>
+                    <li>Las materias primas hayan sido registradas correctamente</li>
+                </ul>
+            """ % (self.product_id.name, self.lot_id.name)
 
         return {
             "type": "ir.actions.act_window",
@@ -250,7 +270,7 @@ class CdvProductionTraceReport(models.TransientModel):
         """Imprimir informe PDF"""
         self.ensure_one()
 
-        if self.state != "computed":
+        if not self.line_ids:
             raise UserError(
                 _("Debe calcular la trazabilidad antes de imprimir el informe.")
             )
@@ -263,7 +283,7 @@ class CdvProductionTraceReport(models.TransientModel):
         """Exportar a Excel (opcional - requiere módulo adicional)"""
         self.ensure_one()
 
-        if self.state != "computed":
+        if not self.line_ids:
             raise UserError(_("Debe calcular la trazabilidad antes de exportar."))
 
         # Esta funcionalidad requeriría un módulo adicional para exportar a Excel
@@ -272,10 +292,24 @@ class CdvProductionTraceReport(models.TransientModel):
             _("La exportación a Excel estará disponible en una versión futura.")
         )
 
+    def action_reset(self):
+        """Volver a borrador para nueva búsqueda"""
+        self.ensure_one()
+        self.line_ids.unlink()
+        self.warning_message = False
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": "cdv.production.trace.report",
+            "view_mode": "form",
+            "res_id": self.id,
+            "target": "new",
+            "context": self.env.context,
+        }
+
 
 class CdvProductionTraceReportLine(models.TransientModel):
     _name = "cdv.production.trace.report.line"
-    _description = "Línea de informe de trazabilidad"
+    _description = "Línea de informe de producto elaborado"
     _order = "production_date desc, finished_product_id, component_product_id"
 
     wizard_id = fields.Many2one(

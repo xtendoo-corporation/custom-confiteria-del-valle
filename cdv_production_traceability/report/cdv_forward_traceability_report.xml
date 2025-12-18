@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Definición del reporte de trazabilidad de materia prima -->
+    <record id="action_report_forward_traceability" model="ir.actions.report">
+        <field name="name">Informe de Materia Prima</field>
+        <field name="model">cdv.forward.trace.report</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">cdv_production_traceability.report_forward_traceability_document</field>
+        <field name="report_file">cdv_production_traceability.report_forward_traceability_document</field>
+        <field name="print_report_name">'Informe_Materia_Prima_%s_%s' % (object.raw_material_id.name, object.raw_material_lot_id.name)</field>
+        <field name="binding_model_id" ref="model_cdv_forward_trace_report"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- Plantilla del reporte de trazabilidad de materia prima -->
+    <template id="report_forward_traceability_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <div class="oe_structure"/>
+
+                        <h2>Informe de Materia Prima</h2>
+
+                        <!-- Filtros y Resumen en dos columnas -->
+                        <div class="row mt32 mb32">
+                            <div class="col-6">
+                                <h5>Filtros</h5>
+                                <strong>Desde:</strong> <span t-field="o.date_from"/><strong> hasta </strong><span t-field="o.date_to"/><br/>
+                                <strong>Materia Prima:</strong> <span t-field="o.raw_material_id"/><br/>
+                                <strong>Lote:</strong> <span t-field="o.raw_material_lot_id"/><br/>
+                                <strong>Inicio de uso:</strong>
+                                <span t-if="o.usage_period_start" t-field="o.usage_period_start"/>
+                                <span t-else="">-</span><br/>
+                                <strong>Fin de uso:</strong>
+                                <span t-if="o.usage_period_end" t-field="o.usage_period_end"/>
+                                <span t-else="">En uso</span><br/>
+                            </div>
+                            <div class="col-6">
+                                <h5>Resumen</h5>
+                                <strong>Total de productos finales:</strong> <span t-esc="o.total_finished_products"/><br/>
+                                <strong>Total de producciones:</strong> <span t-esc="o.total_productions"/><br/>
+                                <strong>Total de unidades producidas:</strong> <span t-esc="'%.2f' % o.total_qty_produced"/><br/>
+                            </div>
+                        </div>
+
+                        <!-- Tabla de productos finales -->
+                        <table class="table table-sm table-borderless">
+                            <thead>
+                                <tr style="background-color: #f5f5f5; color: #000;">
+                                    <th>Fecha</th>
+                                    <th>Producto Final</th>
+                                    <th>Lote</th>
+                                    <th class="text-right">Cantidad</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="o.line_ids" t-as="line">
+                                    <tr>
+                                        <td><span t-field="line.production_date"/></td>
+                                        <td><span t-field="line.finished_product_id"/></td>
+                                        <td>
+                                            <span t-if="line.finished_lot_id" t-field="line.finished_lot_id"/>
+                                            <span t-else="" style="color: #999;">-</span>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-field="line.finished_qty"/>
+                                            <span t-if="line.finished_uom_id" t-field="line.finished_uom_id"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <div class="row mt16">
+                            <div class="col-12 text-muted">
+                                <small>
+                                    <strong>Total de registros:</strong> <t t-esc="len(o.line_ids)"/> líneas
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="oe_structure"/>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+
+</odoo>
+

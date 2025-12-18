@@ -65,7 +65,7 @@
               groups="group_cdv_production_user"/>
 
     <menuitem id="menu_cdv_trace_report"
-              name="Informe de trazabilidad"
+              name="Informe de Producto Elaborado"
               parent="menu_cdv_reports"
               action="action_cdv_production_trace_report"
               sequence="10"
