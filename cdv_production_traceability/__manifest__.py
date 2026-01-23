@@ -47,7 +47,6 @@
         "wizards/cdv_forward_trace_report_views.xml",
         # Vistas (se cargan después de los wizards)
         "views/cdv_raw_material_in_use_views.xml",
-        "views/stock_picking_views.xml",
         "views/res_config_settings_views.xml",
         "views/product_template_views.xml",
         # Menús (deben cargarse después de las vistas y wizards)
