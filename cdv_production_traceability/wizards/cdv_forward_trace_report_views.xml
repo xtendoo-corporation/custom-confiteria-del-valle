@@ -89,12 +89,6 @@
         <field name="context">{}</field>
     </record>
 
-    <!-- Menú para acceder al wizard -->
-    <menuitem id="menu_cdv_forward_trace_report"
-              name="Informe de Materia Prima"
-              parent="cdv_production_traceability.menu_cdv_reports"
-              action="action_cdv_forward_trace_report"
-              sequence="20"/>
 
 </odoo>
 
