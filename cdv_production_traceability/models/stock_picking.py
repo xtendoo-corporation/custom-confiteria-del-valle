@@ -1,4 +1,5 @@
-from odoo import api, fields, models
+from odoo import api, fields, models, _
+from odoo.exceptions import ValidationError
 from datetime import date
 
 
@@ -29,6 +30,44 @@ class StockPicking(models.Model):
                 else:
                     today = date.today()
                     picking.lot_name = today.strftime("%d%m%y")
+
+    @api.constrains('move_ids', 'is_production_entry')
+    def _check_production_entry_products(self):
+        """
+        Validar que solo se puedan agregar productos almacenables y con seguimiento por lotes
+        en los partes de producción
+        """
+        for picking in self:
+            if picking.is_production_entry:
+                for move in picking.move_ids:
+                    product = move.product_id
+
+                    # Verificar que el producto esté marcado como producto elaborado
+                    if not product.cdv_is_finished_product:
+                        raise ValidationError(
+                            _("El producto '%s' no está marcado como producto elaborado.\n\n"
+                              "Solo se pueden agregar productos marcados como 'Es producto elaborado' "
+                              "en los partes de producción.")
+                            % product.name
+                        )
+
+                    # Verificar que el producto sea almacenable (is_storable = True)
+                    if not product.is_storable:
+                        raise ValidationError(
+                            _("El producto '%s' no es almacenable.\n\n"
+                              "Solo se pueden agregar productos almacenables (con 'Puede almacenarse' activado) "
+                              "en los partes de producción para garantizar la trazabilidad.")
+                            % product.name
+                        )
+
+                    # Verificar que el producto tenga seguimiento por lotes o número de serie
+                    if product.tracking not in ['lot', 'serial']:
+                        raise ValidationError(
+                            _("El producto '%s' no tiene seguimiento por lotes/número de serie.\n\n"
+                              "Solo se pueden agregar productos con seguimiento por lotes o números de serie "
+                              "en los partes de producción para garantizar la trazabilidad correcta en los informes.")
+                            % product.name
+                        )
 
     @api.model
     def default_get(self, fields_list):
@@ -210,3 +249,23 @@ class StockPicking(models.Model):
             return self.button_validate()
 
         return True
+
+    def action_cancel(self):
+        """
+        Permitir cancelar albaranes incluso si están en estado 'done'.
+        Forzamos el estado de los movimientos a 'cancel' para evitar la validación estándar.
+        """
+        for picking in self:
+            # Cambiar el estado de los movimientos relacionados directamente usando sudo
+            picking.move_ids.sudo().write({'state': 'cancel'})
+            # Cambiar el estado del picking también
+            picking.sudo().write({'state': 'cancel'})
+        return True
+
+    def unlink(self):
+        """
+        Permitir borrar albaranes sin importar su estado.
+        Saltamos las validaciones estándar usando el método unlink del modelo base.
+        """
+        return models.Model.unlink(self)
+

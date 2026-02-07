@@ -9,9 +9,19 @@
         <field name="arch" type="xml">
 
             <xpath expr="//group[@name='group_standard_price']" position="after">
-                <group string="Confitería del Valle" name="cdv_production">
+                <group string="Información adicional" name="cdv_production">
                     <field name="cdv_is_raw_material"/>
                     <field name="cdv_is_finished_product"/>
+                </group>
+            </xpath>
+
+            <!-- Añadir UoM preferidas después del grupo de información adicional -->
+            <xpath expr="//group[@name='cdv_production']" position="after">
+                <group string="Unidades de Medida Preferidas" name="uom_preferred">
+                    <field name="uom_production_preferred_id"
+                           options="{'no_create': True, 'no_open': True}"/>
+                    <field name="uom_purchase_preferred_id"
+                           options="{'no_create': True, 'no_open': True}"/>
                 </group>
             </xpath>
         </field>

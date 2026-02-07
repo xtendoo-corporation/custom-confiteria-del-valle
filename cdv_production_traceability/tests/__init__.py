@@ -3,3 +3,6 @@ from . import test_production_entry
 from . import test_production_entry_line
 from . import test_res_config_settings
 from . import test_traceability_scenario
+from . import test_uom_production_preferred
+from . import test_mrp_bom_line_uom
+from . import test_mrp_production_uom

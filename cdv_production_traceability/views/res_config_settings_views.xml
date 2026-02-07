@@ -8,7 +8,7 @@
         <field name="inherit_id" ref="stock.res_config_settings_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//app[@name='stock']" position="after">
-                <app string="Confitería del Valle - Trazabilidad" name="cdv_production_traceability">
+                <app string="Información adicional - Trazabilidad" name="cdv_production_traceability">
                     <block title="Trazabilidad de Producción">
                         <setting>
                             <field name="cdv_raw_material_location_id" options="{'no_create': True}"/>

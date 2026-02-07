@@ -71,6 +71,19 @@
         </field>
     </record>
 
+    <!-- Vista adicional para modificar el campo product_id en los movimientos -->
+    <record id="view_production_picking_move_form" model="ir.ui.view">
+        <field name="name">stock.move.production.form</field>
+        <field name="model">stock.move</field>
+        <field name="inherit_id" ref="stock.view_move_form"/>
+        <field name="arch" type="xml">
+            <!-- Aplicar dominio solo cuando el picking sea un parte de producción -->
+            <xpath expr="//field[@name='product_id']" position="attributes">
+                <attribute name="domain">[('cdv_is_finished_product', '=', True), ('is_storable', '=', True), ('tracking', 'in', ['lot', 'serial'])] if parent.is_production_entry else []</attribute>
+            </xpath>
+        </field>
+    </record>
+
     <!-- Acción específica para Partes de Producción -->
     <record id="action_production_picking" model="ir.actions.act_window">
         <field name="name">Partes de Producción</field>

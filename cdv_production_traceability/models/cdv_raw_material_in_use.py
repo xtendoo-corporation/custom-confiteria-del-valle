@@ -278,6 +278,18 @@ class CdvRawMaterialInUse(models.Model):
             }
         return {"domain": {"lot_id": []}}
 
+    @api.constrains('product_id')
+    def _check_product_is_raw_material(self):
+        """Validar que el producto sea una materia prima"""
+        for record in self:
+            if record.product_id and not record.product_id.cdv_is_raw_material:
+                raise ValidationError(
+                    _("El producto '%s' no está marcado como materia prima.\n\n"
+                      "Solo se pueden agregar productos marcados como 'Es materia prima' "
+                      "en las materias primas en uso.")
+                    % record.product_id.name
+                )
+
     def action_finish(self):
         """Finalizar el uso de esta materia prima"""
         self.ensure_one()
@@ -295,3 +307,11 @@ class CdvRawMaterialInUse(models.Model):
 
         self.date_to = False
         return True
+
+    def unlink(self):
+        """
+        Permitir eliminar materias primas en uso sin restricciones.
+        Útil para corregir errores de registro.
+        """
+        return models.Model.unlink(self)
+

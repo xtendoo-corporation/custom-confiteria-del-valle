@@ -4,8 +4,8 @@
 
         <!-- Categoría de módulo -->
         <record id="module_category_cdv_production" model="ir.module.category">
-            <field name="name">Confitería del Valle - Producción</field>
-            <field name="description">Gestión de producción y trazabilidad para Confitería del Valle</field>
+            <field name="name">Información adicional - Producción</field>
+            <field name="description">Gestión de producción y trazabilidad para Información adicional</field>
             <field name="sequence">20</field>
         </record>
 
