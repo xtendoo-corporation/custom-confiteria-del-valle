@@ -24,6 +24,7 @@ class CdvRawMaterialInUse(models.Model):
         string="Materia prima",
         required=True,
         index=True,
+        domain=[("cdv_is_raw_material", "=", True)],
     )
     lot_id = fields.Many2one(
         comodel_name="stock.lot",
@@ -280,17 +281,14 @@ class CdvRawMaterialInUse(models.Model):
 
     @api.constrains("product_id")
     def _check_product_is_raw_material(self):
-        """Validar que el producto sea una materia prima o un producto elaborado (semi-terminado)"""
+        """Validar que el producto sea una materia prima"""
         for record in self:
-            if record.product_id and not (
-                record.product_id.cdv_is_raw_material
-                or record.product_id.cdv_is_finished_product
-            ):
+            if record.product_id and not record.product_id.cdv_is_raw_material:
                 raise ValidationError(
                     _(
-                        "El producto '%s' no está marcado como materia prima ni como producto elaborado.\n\n"
-                        "Solo se pueden agregar productos marcados como 'Es materia prima' o 'Es producto elaborado' "
-                        "en las materias primas en uso."
+                        "El producto '%s' no está marcado como materia prima.\n\n"
+                        "Solo se pueden agregar productos marcados como 'Es materia prima' "
+                        "en los registros de materias primas en uso."
                     )
                     % record.product_id.name
                 )
