@@ -278,15 +278,20 @@ class CdvRawMaterialInUse(models.Model):
             }
         return {"domain": {"lot_id": []}}
 
-    @api.constrains('product_id')
+    @api.constrains("product_id")
     def _check_product_is_raw_material(self):
-        """Validar que el producto sea una materia prima"""
+        """Validar que el producto sea una materia prima o un producto elaborado (semi-terminado)"""
         for record in self:
-            if record.product_id and not record.product_id.cdv_is_raw_material:
+            if record.product_id and not (
+                record.product_id.cdv_is_raw_material
+                or record.product_id.cdv_is_finished_product
+            ):
                 raise ValidationError(
-                    _("El producto '%s' no está marcado como materia prima.\n\n"
-                      "Solo se pueden agregar productos marcados como 'Es materia prima' "
-                      "en las materias primas en uso.")
+                    _(
+                        "El producto '%s' no está marcado como materia prima ni como producto elaborado.\n\n"
+                        "Solo se pueden agregar productos marcados como 'Es materia prima' o 'Es producto elaborado' "
+                        "en las materias primas en uso."
+                    )
                     % record.product_id.name
                 )
 
@@ -314,4 +319,3 @@ class CdvRawMaterialInUse(models.Model):
         Útil para corregir errores de registro.
         """
         return models.Model.unlink(self)
-

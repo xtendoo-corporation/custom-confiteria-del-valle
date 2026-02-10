@@ -9,37 +9,35 @@ class TestUomProductionPreferred(TransactionCase):
     def setUpClass(cls):
         super().setUpClass()
 
-        # Crear categorías de UoM
-        cls.uom_category_unit = cls.env.ref('uom.product_uom_categ_unit')
-        cls.uom_category_weight = cls.env.ref('uom.product_uom_categ_kgm')
-
         # Crear UoMs
-        cls.uom_unit = cls.env.ref('uom.product_uom_unit')
-        cls.uom_dozen = cls.env.ref('uom.product_uom_dozen')
-        cls.uom_kg = cls.env.ref('uom.product_uom_kgm')
+        cls.uom_unit = cls.env.ref("uom.product_uom_unit")
+        cls.uom_dozen = cls.env.ref("uom.product_uom_dozen")
+        cls.uom_kg = cls.env.ref("uom.product_uom_kgm")
 
         # Crear UoM caja (si no existe)
-        cls.uom_box = cls.env['uom.uom'].search([
-            ('name', '=', 'Caja'),
-            ('category_id', '=', cls.uom_category_unit.id)
-        ], limit=1)
+        cls.uom_box = cls.env["uom.uom"].search(
+            [("name", "=", "Caja"), ("relative_uom_id", "=", cls.uom_unit.id)], limit=1
+        )
 
         if not cls.uom_box:
-            cls.uom_box = cls.env['uom.uom'].create({
-                'name': 'Caja',
-                'category_id': cls.uom_category_unit.id,
-                'factor_inv': 12.0,
-                'uom_type': 'bigger',
-                'rounding': 1.0,
-            })
+            cls.uom_box = cls.env["uom.uom"].create(
+                {
+                    "name": "Caja",
+                    "relative_uom_id": cls.uom_unit.id,
+                    "relative_factor": 12.0,
+                    "rounding": 1.0,
+                }
+            )
 
         # Crear producto de prueba
-        cls.product = cls.env['product.product'].create({
-            'name': 'Test Product',
-            'type': 'product',
-            'uom_id': cls.uom_unit.id,
-            'uom_po_id': cls.uom_unit.id,
-        })
+        cls.product = cls.env["product.product"].create(
+            {
+                "name": "Test Product",
+                "type": "product",
+                "uom_id": cls.uom_unit.id,
+                "uom_po_id": cls.uom_unit.id,
+            }
+        )
 
     def test_01_uom_production_preferred_same_category(self):
         """Test: UoM de producción preferida debe estar en la misma categoría"""
@@ -48,7 +46,7 @@ class TestUomProductionPreferred(TransactionCase):
         self.assertEqual(
             self.product.uom_production_preferred_id,
             self.uom_box,
-            "UoM de producción preferida debería configurarse correctamente"
+            "UoM de producción preferida debería configurarse correctamente",
         )
 
     def test_02_uom_production_preferred_different_category_fails(self):
@@ -58,9 +56,9 @@ class TestUomProductionPreferred(TransactionCase):
             self.product.uom_production_preferred_id = self.uom_kg.id
 
         self.assertIn(
-            'misma categoría',
+            "misma categoría",
             str(context.exception),
-            "Debe lanzar error sobre categorías incompatibles"
+            "Debe lanzar error sobre categorías incompatibles",
         )
 
     def test_03_uom_purchase_preferred_same_category(self):
@@ -70,7 +68,7 @@ class TestUomProductionPreferred(TransactionCase):
         self.assertEqual(
             self.product.uom_purchase_preferred_id,
             self.uom_dozen,
-            "UoM de compra preferida debería configurarse correctamente"
+            "UoM de compra preferida debería configurarse correctamente",
         )
 
     def test_04_uom_purchase_preferred_different_category_fails(self):
@@ -80,9 +78,9 @@ class TestUomProductionPreferred(TransactionCase):
             self.product.uom_purchase_preferred_id = self.uom_kg.id
 
         self.assertIn(
-            'misma categoría',
+            "misma categoría",
             str(context.exception),
-            "Debe lanzar error sobre categorías incompatibles"
+            "Debe lanzar error sobre categorías incompatibles",
         )
 
     def test_05_empty_uom_preferred_is_valid(self):
@@ -91,7 +89,5 @@ class TestUomProductionPreferred(TransactionCase):
         self.product.uom_purchase_preferred_id = False
         # No debe lanzar ningún error
         self.assertFalse(
-            self.product.uom_production_preferred_id,
-            "UoM preferida vacía es válida"
+            self.product.uom_production_preferred_id, "UoM preferida vacía es válida"
         )
-

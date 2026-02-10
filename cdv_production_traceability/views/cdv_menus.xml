@@ -8,74 +8,74 @@
               groups="group_cdv_production_user"
               web_icon="cdv_production_traceability,static/description/icon.png"/>
 
-    <!-- Submenú: Materias primas -->
-    <menuitem id="menu_cdv_raw_materials"
-              name="Materias primas"
+    <!-- Primer menú: Producción -->
+    <menuitem id="menu_cdv_production"
+              name="Producción"
               parent="menu_cdv_production_root"
               sequence="10"
               groups="group_cdv_production_user"/>
 
     <menuitem id="menu_cdv_raw_material_in_use"
               name="Materias primas en uso"
-              parent="menu_cdv_raw_materials"
+              parent="menu_cdv_production"
               action="action_cdv_raw_material_in_use"
               sequence="10"
               groups="group_cdv_production_user"/>
 
-    <menuitem id="menu_cdv_products_products"
-              name="Productos"
-              parent="menu_cdv_raw_materials"
-              action="product.product_template_action"
-              sequence="20"
-              groups="group_cdv_production_user"/>
-
-    <menuitem id="menu_cdv_products_bom"
-              name="Listas de materiales"
-              parent="menu_cdv_raw_materials"
-              action="mrp.mrp_bom_form_action"
-              sequence="30"
-              groups="group_cdv_production_user"/>
-
-    <!-- Submenú: Producción -->
-    <menuitem id="menu_cdv_production"
-              name="Producción diaria"
-              parent="menu_cdv_production_root"
-              sequence="20"
-              groups="group_cdv_production_user"/>
-
     <menuitem id="menu_cdv_production_entry"
-              name="Partes de producción"
+              name="Producción diaria"
               parent="menu_cdv_production"
               action="action_production_picking"
-              sequence="10"
+              sequence="20"
               groups="group_cdv_production_user"/>
 
-    <!-- Submenú: Informes -->
+    <!-- Segundo menú: Informes -->
     <menuitem id="menu_cdv_reports"
               name="Informes"
               parent="menu_cdv_production_root"
-              sequence="30"
-              groups="group_cdv_production_user"/>
-
-    <menuitem id="menu_cdv_trace_report"
-              name="Informe de Producto Elaborado"
-              parent="menu_cdv_reports"
-              action="action_cdv_production_trace_report"
-              sequence="10"
+              sequence="20"
               groups="group_cdv_production_user"/>
 
     <menuitem id="menu_cdv_forward_trace_report"
               name="Informe de Materia Prima"
               parent="menu_cdv_reports"
               action="action_cdv_forward_trace_report"
+              sequence="10"
+              groups="group_cdv_production_user"/>
+
+    <menuitem id="menu_cdv_trace_report"
+              name="Informe de Producto Elaborado"
+              parent="menu_cdv_reports"
+              action="action_cdv_production_trace_report"
               sequence="20"
               groups="group_cdv_production_user"/>
 
-    <!-- Submenú: Configuración -->
+    <!-- Tercer menú: Configuración -->
     <menuitem id="menu_cdv_configuration"
               name="Configuración"
               parent="menu_cdv_production_root"
-              sequence="90"
+              sequence="30"
+              groups="group_cdv_production_manager"/>
+
+    <menuitem id="menu_cdv_products_products"
+              name="Productos"
+              parent="menu_cdv_configuration"
+              action="product.product_template_action"
+              sequence="10"
+              groups="group_cdv_production_manager"/>
+
+    <menuitem id="menu_cdv_products_bom"
+              name="Listas de materiales"
+              parent="menu_cdv_configuration"
+              action="mrp.mrp_bom_form_action"
+              sequence="20"
+              groups="group_cdv_production_manager"/>
+
+    <menuitem id="menu_cdv_units_packaging"
+              name="Unidades y embalajes"
+              parent="menu_cdv_configuration"
+              action="uom.product_uom_form_action"
+              sequence="30"
               groups="group_cdv_production_manager"/>
 
 </odoo>

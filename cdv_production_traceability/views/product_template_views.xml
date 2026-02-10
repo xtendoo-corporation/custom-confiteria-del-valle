@@ -27,5 +27,23 @@
         </field>
     </record>
 
+    <!-- Extensión de vista de búsqueda para agregar filtros -->
+    <record id="product_template_search_view_cdv" model="ir.ui.view">
+        <field name="name">product.template.search.inherit.cdv</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_search_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='filter_to_sell']" position="after">
+                <separator/>
+                <filter string="Materias Primas"
+                        name="filter_raw_material"
+                        domain="[('cdv_is_raw_material', '=', True)]"/>
+                <filter string="Productos Elaborados"
+                        name="filter_finished_product"
+                        domain="[('cdv_is_finished_product', '=', True)]"/>
+            </xpath>
+        </field>
+    </record>
+
 </odoo>
 
