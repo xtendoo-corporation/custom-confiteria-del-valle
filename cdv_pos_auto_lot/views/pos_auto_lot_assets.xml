@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- This file is kept for compatibility. Assets are registered
+         via the 'assets' key in __manifest__.py. -->
+</odoo>
