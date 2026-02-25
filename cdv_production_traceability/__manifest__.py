@@ -47,6 +47,7 @@
         "mrp",
         "sale_management",
         "sale_stock",
+        "sale_order_lot_selection"
     ],
     "data": [
         # Seguridad
