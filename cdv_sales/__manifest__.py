@@ -14,8 +14,7 @@
     "license": "LGPL-3",
     "depends": [
         "sale_management",
-        "sale_stock",
-        "sale_order_lot_selection"
+        "sale_stock"
     ],
     "data": [
         "views/sale_order_views.xml",
