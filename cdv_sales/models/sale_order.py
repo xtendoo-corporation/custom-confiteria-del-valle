@@ -11,7 +11,6 @@ class SaleOrder(models.Model):
                 if picking.state in ['draft', 'waiting', 'confirmed']:
                     picking.action_assign()
                 for move in picking.move_ids.filtered(lambda m: m.state not in ['done', 'cancel']):
-                    move.quantity = move.product_uom_qty
                     if hasattr(move, 'picked'):
                         move.picked = True
                 picking.with_context(skip_sms=True, skip_backorder=True).button_validate()
