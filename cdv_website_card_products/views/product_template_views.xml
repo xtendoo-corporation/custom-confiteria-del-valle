@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_template_form_view_inherit" model="ir.ui.view">
+        <field name="name">product.template.form.inherit.cdv</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='description_ecommerce']" position="before">
+                <group string="Descripción de la web" name="website_selection_page">
+                    <field name="website_selection_short_description"
+                        placeholder="e.g. Nuestra tarta cremosa sobre base de galleta artesanal..." />
+                </group>
+            </xpath>
+            <xpath expr="//group[@name='product_template_images']" position="after">
+                <group string="Alergenos" name="product_allergens" invisible="not sale_ok">
+                    <field name="allergen_ids" widget="many2many_kanban" nolabel="1">
+                        <kanban>
+                            <field name="id" />
+                            <field name="name" />
+                            <field name="image" />
+                            <templates>
+                                <t t-name="card">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="o_kanban_image">
+                                            <field name="image" widget="image"
+                                                options="{'size': [40, 40]}"
+                                                class="o_image_40_cover rounded" />
+                                        </div>
+                                        <div class="oe_kanban_details">
+                                            <field name="name" class="fw-bold" />
+                                        </div>
+                                    </div>
+                                </t>
+                            </templates>
+                        </kanban>
+                    </field>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

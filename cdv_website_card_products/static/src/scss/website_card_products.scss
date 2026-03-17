@@ -1,0 +1,142 @@
+// Custom styles for Dulzuras del Sur - Nuestra Carta
+.cdv_selection_page {
+    --cdv-creamy-bg: #fdfaf5;
+    --cdv-warm-primary: #8d5b3e;
+    --cdv-accent-sweet: #e67e22;
+    --cdv-card-bg: #ffffff;
+    --cdv-transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+    background-color: var(--cdv-creamy-bg);
+
+    .cdv_hero_banner {
+        min-height: 400px;
+        display: flex;
+        align-items: center;
+        position: relative;
+        background-size: cover;
+        background-position: center;
+        
+        h1 {
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            letter-spacing: -1px;
+        }
+    }
+
+    .cdv_sidebar {
+        .list-group-item {
+            border: none;
+            border-left: 4px solid transparent;
+            background-color: transparent;
+            color: #555;
+            font-weight: 500;
+            transition: var(--cdv-transition);
+            margin-bottom: 2px;
+
+            &:hover {
+                background-color: rgba(141, 91, 62, 0.05);
+                color: var(--cdv-warm-primary);
+                border-left-color: rgba(141, 91, 62, 0.3);
+                padding-left: 1.5rem;
+            }
+
+            &.active {
+                background-color: rgba(141, 91, 62, 0.1);
+                color: var(--cdv-warm-primary);
+                border-left-color: var(--cdv-warm-primary);
+                font-weight: 700;
+            }
+        }
+    }
+
+    .cdv_product_card {
+        transition: var(--cdv-transition);
+        border-radius: 12px;
+        
+        &:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            
+            .cdv_card_img_wrap img {
+                transform: scale(1.05);
+            }
+        }
+
+        .cdv_card_img_wrap {
+            height: 220px;
+            overflow: hidden;
+            
+            img {
+                height: 100%;
+                width: 100%;
+                object-fit: cover;
+                transition: var(--cdv-transition);
+            }
+        }
+
+        .card-title {
+            color: #333;
+            font-size: 1.15rem;
+        }
+
+        .cdv_allergen_logos {
+            min-height: 24px;
+            .cdv_allergen_icon {
+                transition: transform 0.2s ease;
+                display: inline-block;
+                &:hover {
+                    transform: scale(1.2);
+                }
+            }
+        }
+
+        .cdv_allergen_excluded {
+            text-decoration: line-through;
+            border-left: 4px solid var(--danger) !important;
+            
+            img {
+                filter: grayscale(1);
+            }
+        }
+
+        .btn-primary {
+            background-color: var(--cdv-warm-primary);
+            border-color: var(--cdv-warm-primary);
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            
+            &:hover {
+                background-color: #724932;
+                border-color: #724932;
+                transform: scale(1.05);
+            }
+        }
+    }
+
+    // Scroll Margin for anchors
+    [id^="cat_"] {
+        scroll-margin-top: 100px;
+    }
+}
+
+// Micro-animations
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.cdv_product_card {
+    animation: fadeInUp 0.6s ease-out backwards;
+    
+    @for $i from 1 through 12 {
+        &:nth-child(#{$i}) {
+            animation-delay: #{$i * 0.1}s;
+        }
+    }
+}
