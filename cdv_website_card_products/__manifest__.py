@@ -7,7 +7,7 @@
         with a premium layout, category sidebar, and high-quality product cards.
     """,
     "category": "Website/Website",
-    "author": "Antigravity",
+    "author": "Abraham, Endika (Xtendoo)",
     "depends": ["website", "website_sale"],
     "data": [
         "security/ir.model.access.csv",
