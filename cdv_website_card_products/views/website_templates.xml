@@ -8,9 +8,10 @@
                     style="background-image: url('/cdv_website_card_products/static/src/img/hero_bakery.jpg');">
                     <div class="o_we_bg_filter bg-black-25" />
                     <div class="container py-5 text-center">
-                        <h1 class="display-3 fw-bold text-white mb-3">Nuestra Selección Artesanal</h1>
-                        <p class="lead text-white opacity-75">Dulzuras del Sur - Elaboración propia
-                            con ingredientes naturales</p>
+                        <h1 class="display-3 fw-bold text-white mb-3">Información de Alérgenos</h1>
+                        <p class="lead text-white opacity-75">Dulzuras del Sur - Consulta los
+                            alérgenos
+                            de nuestra selección de productos</p>
                     </div>
                 </section>
 
