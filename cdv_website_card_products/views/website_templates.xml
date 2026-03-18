@@ -105,7 +105,9 @@
         <div class="col-md-6 col-xl-4">
             <div class="card h-100 cdv_product_card border-0 shadow-sm overflow-hidden">
                 <div class="cdv_card_img_wrap">
-                    <img t-att-src="website.image_url(product, 'image_1024')"
+                    <t t-set="image_to_show"
+                        t-value="product.product_template_image_ids[0] if product.product_template_image_ids else product" />
+                    <img t-att-src="website.image_url(image_to_show, 'image_1024')"
                         class="card-img-top"
                         t-att-alt="product.name" />
                 </div>
