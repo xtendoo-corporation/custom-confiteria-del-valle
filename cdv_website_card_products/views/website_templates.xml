@@ -3,11 +3,21 @@
     <template id="alergenos" name="Alergenos">
         <t t-call="website.layout">
             <div id="wrap" class="js_sale cdv_selection_page">
+                <!-- DIAGNOSTIC: APPLIED_MOBILE_GRID_V2 -->
+                <style>
+                    @media (max-width: 991.98px) {
+                        .cdv_sidebar .cdv_mobile_grid_item {
+                            flex: 0 0 50% !important;
+                            max-width: 50% !important;
+                            width: 50% !important;
+                        }
+                    }
+                </style>
                 <!-- Hero Section -->
-                <section class="cdv_hero_banner s_banner oe_img_bg o_bg_img_center"
+                <section class="cdv_hero_banner s_banner oe_img_bg o_bg_img_center mb-0 pb-0"
                     style="background-image: url('/cdv_website_card_products/static/src/img/hero_bakery.jpg');">
                     <div class="o_we_bg_filter bg-black-25" />
-                    <div class="container py-5 text-center">
+                    <div class="container pt-5 pb-0 text-center">
                         <h1 class="display-3 fw-bold text-white mb-3">Información de Alérgenos</h1>
                         <p class="lead text-white opacity-75">Dulzuras del Sur - Consulta los
                             alérgenos
@@ -15,11 +25,11 @@
                     </div>
                 </section>
 
-                <div class="container py-5">
-                    <div class="row">
+                <div class="container mt-0 pt-0 pb-5">
+                    <div class="row mt-0 pt-0">
                         <!-- Sidebar: Allergens -->
-                        <aside class="col-lg-3 cdv_sidebar">
-                            <div class="list-group list-group-flush shadow-sm rounded">
+                        <aside class="col-lg-3 cdv_sidebar mt-0 pt-0">
+                            <div class="row g-2 mt-0 mb-4">
                                 <t t-foreach="allergens" t-as="allergen">
                                     <t t-set="is_excluded"
                                         t-value="allergen.id in exclude_allergen_ids" />
@@ -29,45 +39,53 @@
                                     <t t-else="" t-set="dummy"
                                         t-value="new_exclude_ids.append(allergen.id)" />
 
-                                    <t t-set="exclude_url"
-                                        t-value="'/alergenos?exclude_allergens=%s' % ','.join(map(str, new_exclude_ids)) if new_exclude_ids else '/alergenos'" />
-
-                                    <a t-att-href="exclude_url"
-                                        t-attf-class="list-group-item list-group-item-action d-flex align-items-center py-3 #{'cdv_allergen_excluded opacity-50 bg-light' if is_excluded else ''}"
-                                        t-att-title="'Incluir %s' % allergen.name if is_excluded else 'Excluir %s' % allergen.name">
-                                        <div class="position-relative me-3">
-                                            <img t-att-src="website.image_url(allergen, 'image')"
-                                                style="width: 48px; height: 48px; object-fit: contain;"
-                                                t-att-alt="allergen.name" />
-                                            <t t-if="is_excluded">
-                                                <div
-                                                    class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
-                                                    <i
-                                                        class="fa fa-ban text-danger fa-2x opacity-75"></i>
-                                                </div>
-                                            </t>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <span class="fw-bold d-block" t-esc="allergen.name" />
-                                            <small t-if="is_excluded" class="text-danger">Excluido</small>
-                                            <small t-else="" class="text-success">Visible</small>
-                                        </div>
-                                    </a>
+                                    <div class="col-4 col-lg-12 cdv_mobile_grid_item">
+                                        <t t-set="exclude_url"
+                                            t-value="'/alergenos?exclude_allergens=%s' % ','.join(map(str, new_exclude_ids)) if new_exclude_ids else '/alergenos'" />
+                                        <a t-att-href="exclude_url"
+                                            t-attf-class="list-group-item list-group-item-action d-flex align-items-center p-2 shadow-sm rounded border #{'cdv_allergen_excluded opacity-50 bg-light active' if is_excluded else ''}"
+                                            t-att-title="'Incluir %s' % allergen.name if is_excluded else 'Excluir %s' % allergen.name">
+                                            <div class="position-relative mx-auto mb-1">
+                                                <img t-att-src="website.image_url(allergen, 'image')"
+                                                    style="width: 32px; height: 32px; object-fit: contain;"
+                                                    t-att-alt="allergen.name" />
+                                                <t t-if="is_excluded">
+                                                    <div
+                                                        class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
+                                                        <i
+                                                            class="fa fa-ban text-danger fa-lg opacity-75"></i>
+                                                    </div>
+                                                </t>
+                                            </div>
+                                            <div class="flex-grow-1 overflow-hidden text-center">
+                                                <span class="fw-bold d-block text-truncate small"
+                                                    t-esc="allergen.name" />
+                                                <t t-if="is_excluded">
+                                                    <small class="text-danger" style="font-size: 0.7rem;">Excluido</small>
+                                                </t>
+                                                <t t-else="">
+                                                    <small class="text-success" style="font-size: 0.7rem;">Visible</small>
+                                                </t>
+                                            </div>
+                                        </a>
+                                    </div>
                                 </t>
                                 <t t-if="not allergens">
-                                    <div class="list-group-item py-3 text-muted small text-center">
-                                        No hay alérgenos configurados
+                                    <div class="col-12">
+                                        <div class="alert alert-info py-3 small text-center">
+                                            No hay alérgenos configurados
+                                        </div>
                                     </div>
                                 </t>
                             </div>
                         </aside>
 
                         <!-- Main Content: Product Grid -->
-                        <div id="all_selection" class="col-lg-9">
+                        <div id="all_selection" class="col-lg-9 mt-0 pt-0">
                             <!-- If categories exist, group by them -->
                             <t t-if="categories" t-foreach="categories" t-as="category">
-                                <div t-att-id="'cat_%s' % category.id" class="mb-5">
-                                    <h2 class="h3 border-bottom pb-2 mb-4 text-primary"
+                                <div t-att-id="'cat_%s' % category.id" class="mt-0 mb-5">
+                                    <h2 class="h3 border-bottom mt-0 pb-2 mb-4 text-primary"
                                         t-esc="category.name" />
                                     <div class="row g-4">
                                         <t t-foreach="products" t-as="product">
@@ -81,8 +99,8 @@
                             </t>
 
                             <!-- If no categories or products not in categories, show all -->
-                            <div class="mb-5">
-                                <h2 class="h3 border-bottom pb-2 mb-4 text-primary">Nuestra
+                            <div class="mt-0 mb-5">
+                                <h2 class="h3 border-bottom mt-0 pb-2 mb-4 text-primary">Nuestra
                                     Selección</h2>
                                 <div class="row g-4">
                                     <t t-foreach="products" t-as="product">
@@ -102,7 +120,7 @@
 
     <!-- Sub-template for the product card to avoid repetition -->
     <template id="product_card_template">
-        <div class="col-md-6 col-xl-4">
+        <div class="col-4 col-md-6 col-xl-4 p-1 p-md-2 p-lg-3">
             <div class="card h-100 cdv_product_card border-0 shadow-sm overflow-hidden">
                 <div class="cdv_card_img_wrap">
                     <t t-set="image_to_show"
@@ -111,17 +129,17 @@
                         class="card-img-top"
                         t-att-alt="product.name" />
                 </div>
-                <div class="card-body p-4">
-                    <h5 class="card-title fw-bold mb-2" t-field="product.name" />
-                    <p class="card-text text-muted small mb-2"
+                <div class="card-body p-2 p-md-3 p-xl-4">
+                    <h5 class="card-title fw-bold mb-1 mb-md-2" t-field="product.name" />
+                    <p class="card-text text-muted small mb-2 d-none d-md-block"
                         t-field="product.website_selection_short_description" />
 
                     <!-- Allergen Logos -->
-                    <div class="cdv_allergen_logos mb-3 d-flex gap-2">
+                    <div class="cdv_allergen_logos mb-2 d-flex flex-wrap gap-1">
                         <t t-foreach="product.allergen_ids" t-as="allergen">
                             <span class="cdv_allergen_icon" t-att-title="allergen.name">
                                 <img t-att-src="website.image_url(allergen, 'image')"
-                                    style="width: 32px; height: 32px; object-fit: contain;"
+                                    class="cdv_card_allergen_img"
                                     t-att-alt="allergen.name" />
                             </span>
                         </t>
@@ -130,6 +148,9 @@
                     <!--<div
                         class="d-flex align-items-center justify-content-between mt-auto pt-3 border-top">
                         <span class="h5 fw-bold mb-0 text-dark" t-field="product.list_price"
+                    <div
+                        class="d-flex align-items-center justify-content-between mt-auto pt-2 border-top">
+                        <span class="fw-bold mb-0 text-dark cdv_price_text" t-field="product.list_price"
                             t-options="{'widget': 'monetary', 'display_currency': website.currency_id}" />
                         <form action="/shop/cart/update" method="post" class="m-0">
                             <input type="hidden" name="csrf_token"

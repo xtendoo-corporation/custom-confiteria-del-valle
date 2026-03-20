@@ -65,6 +65,10 @@
             height: 220px;
             overflow: hidden;
             
+            @media (max-width: 991.98px) {
+                height: 120px; // Shorter images for 3-col
+            }
+            
             img {
                 height: 100%;
                 width: 100%;
@@ -73,19 +77,53 @@
             }
         }
 
+        .card-body {
+            @media (max-width: 991.98px) {
+                padding: 0.75rem !important;
+            }
+        }
+
         .card-title {
             color: #333;
             font-size: 1.15rem;
+            
+            @media (max-width: 991.98px) {
+                font-size: 0.85rem;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                min-height: 2.2em;
+            }
         }
 
         .cdv_allergen_logos {
             min-height: 24px;
+            
+            .cdv_card_allergen_img {
+                width: 32px;
+                height: 32px;
+                object-fit: contain;
+                
+                @media (max-width: 991.98px) {
+                    width: 20px;
+                    height: 20px;
+                }
+            }
+
             .cdv_allergen_icon {
                 transition: transform 0.2s ease;
                 display: inline-block;
                 &:hover {
                     transform: scale(1.2);
                 }
+            }
+        }
+
+        .cdv_price_text {
+            font-size: 1.25rem;
+            @media (max-width: 991.98px) {
+                font-size: 0.9rem;
             }
         }
 
@@ -137,6 +175,59 @@
     @for $i from 1 through 12 {
         &:nth-child(#{$i}) {
             animation-delay: #{$i * 0.1}s;
+        }
+    }
+}
+
+// Responsive grid for allergens on mobile
+@media (max-width: 991.98px) {
+    .cdv_selection_page .cdv_sidebar {
+        // Force row layout for the list-group
+        .list-group {
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: wrap !important;
+            gap: 8px !important;
+            background: transparent !important;
+            box-shadow: none !important;
+
+            .list-group-item {
+                flex: 0 0 calc(33.33% - 6px) !important;
+                max-width: calc(33.33% - 6px) !important;
+                border: 1px solid rgba(141, 91, 62, 0.1) !important;
+                border-radius: 8px !important;
+                margin-bottom: 0 !important;
+                background-color: #fff !important;
+                padding: 4px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                text-align: center !important;
+                
+                // Reset any existing spacing
+                div {
+                    margin-right: 0 !important;
+                    margin-left: 0 !important;
+                    padding-right: 0 !important;
+                    padding-left: 0 !important;
+                }
+
+                img {
+                    width: 24px !important;
+                    height: 24px !important;
+                    margin: 0 auto 4px auto !important;
+                }
+                .fw-bold {
+                    width: 100% !important;
+                    font-size: 0.75rem !important;
+                    line-height: 1.1 !important;
+                    margin: 0 !important;
+                }
+                small {
+                    display: none !important;
+                }
+            }
         }
     }
 }
