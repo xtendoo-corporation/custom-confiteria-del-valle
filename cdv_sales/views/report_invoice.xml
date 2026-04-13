@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_invoice_document_inherit_price_und" inherit_id="account.report_invoice_document">
+        <xpath expr="//th[@name='th_priceunit']/span" position="replace">
+            <span>precio und./ iva inclu.</span>
+        </xpath>
+    </template>
+</odoo>

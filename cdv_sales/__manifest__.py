@@ -14,10 +14,12 @@
     "license": "LGPL-3",
     "depends": [
         "sale_management",
-        "sale_stock"
+        "sale_stock",
+        "account"
     ],
     "data": [
         "views/sale_order_views.xml",
+        "views/report_invoice.xml",
     ],
     "installable": True,
     "application": False,
