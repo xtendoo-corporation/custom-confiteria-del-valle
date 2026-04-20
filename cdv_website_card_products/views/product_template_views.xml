@@ -9,6 +9,9 @@
                 <group string="Descripción de la web" name="website_selection_page">
                     <field name="website_selection_short_description"
                         placeholder="e.g. Nuestra tarta cremosa sobre base de galleta artesanal..." />
+                    <field name="allergen_page_sequence"
+                        placeholder="e.g. 10"
+                        help="Orden en /alergenos: el valor menor aparece primero." />
                 </group>
             </xpath>
             <xpath expr="//group[@name='product_template_images']" position="after">
@@ -38,4 +41,38 @@
             </xpath>
         </field>
     </record>
+    <!-- Vista lista con drag & drop para ordenar productos en /alergenos -->
+    <record id="product_template_tree_allergen_order" model="ir.ui.view">
+        <field name="name">product.template.tree.allergen.order</field>
+        <field name="model">product.template</field>
+        <field name="arch" type="xml">
+            <list default_order="allergen_page_sequence">
+                <field name="allergen_page_sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="default_code" optional="show"/>
+                <field name="is_published" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Acción para abrir la vista de orden -->
+    <record id="action_product_allergen_order" model="ir.actions.act_window">
+        <field name="name">Orden productos /alergenos</field>
+        <field name="res_model">product.template</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="product_template_tree_allergen_order"/>
+        <field name="domain">[('is_published', '=', True), ('sale_ok', '=', True)]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Arrastra los productos para definir su orden en la página de alérgenos.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menú bajo Website -->
+    <menuitem id="menu_allergen_order_root"
+        name="Orden Alérgenos"
+        parent="website.menu_website_global_configuration"
+        action="action_product_allergen_order"
+        sequence="90"/>
 </odoo>

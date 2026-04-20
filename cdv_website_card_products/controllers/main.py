@@ -37,7 +37,10 @@ class WebsiteCardProducts(http.Controller):
             # Exclude products that have ANY of the excluded allergens
             domain.append(("allergen_ids", "not in", exclude_allergen_ids))
 
-        products = request.env["product.template"].search(domain)
+        products = request.env["product.template"].search(
+            domain,
+            order="allergen_page_sequence ASC NULLS LAST, name ASC",
+        )
         allergens = request.env["product.allergen"].search([])
 
         values = {

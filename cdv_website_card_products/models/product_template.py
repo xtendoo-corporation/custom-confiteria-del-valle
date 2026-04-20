@@ -1,5 +1,6 @@
 from odoo import fields, models
 
+
 class ProductTemplate(models.Model):
     _inherit = 'product.template'
 
@@ -14,3 +15,10 @@ class ProductTemplate(models.Model):
         string='Alergenos',
         help='Select allergens for this product.'
     )
+
+    allergen_page_sequence = fields.Integer(
+        string='Orden en pagina alergenos',
+        default=9999,
+        help='Custom display order for /alergenos. Lower values appear first.'
+    )
+
