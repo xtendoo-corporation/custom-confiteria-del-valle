@@ -1,22 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template" xml:space="preserve">
     <t t-name="cdv_pos_auto_lot.ReceiptHeaderConfiteria" t-inherit="todopintura_pos_custom.ReceiptHeader" t-inherit-mode="extension">
+        <xpath expr="//t[@t-set='company']" position="replace">
+            <t t-set="company"
+               t-value="((props.order &amp;&amp; props.order.company) || (data &amp;&amp; data.company) || (env &amp;&amp; env.pos &amp;&amp; env.pos.company_printable) || (env &amp;&amp; env.pos &amp;&amp; env.pos.company) || (props.order &amp;&amp; props.order.pos &amp;&amp; props.order.pos.company_printable) || {})"/>
+        </xpath>
+
         <xpath expr="//div[hasclass('custom-header')]/div[1]" position="replace">
             <div style="margin-top: 5px; margin-bottom: 3px; font-weight: bold;">
-                <t t-esc="'CONFITERIA NTRA SRA DEL VALLE'"/>
+                CONFITERIA NTRA SRA DEL VALLE
+            </div>
+        </xpath>
+
+        <xpath expr="//strong[text()='FECHA:']/.." position="replace">
+            <div style="margin-bottom: 2px;">
+                <strong>FECHA:</strong>
+                <t t-esc="(props.order &amp;&amp; props.order.date_order) || ''"/>
+            </div>
+        </xpath>
+
+        <xpath expr="//strong[text()='FACTURA SIMPLIFICADA:']/.." position="replace">
+            <div style="margin-bottom: 2px;">
+                <strong>FACTURA SIMPLIFICADA:</strong> <t t-esc="(props.order &amp;&amp; props.order.name) || ''"/>
             </div>
         </xpath>
     </t>
 
     <t t-name="cdv_pos_auto_lot.OrderReceiptConfiteria" t-inherit="todopintura_pos_custom.OrderReceipt" t-inherit-mode="extension">
-        <xpath expr="//t[@t-esc=&quot;line.custom_line_name || line.name || line.product_id.display_name&quot;]" position="replace">
-            <t t-esc="((line.custom_line_name || line.name || line.product_id.display_name || '').replaceAll('Bandejas', 'Bandeja').replaceAll('bandejas', 'bandeja').replaceAll('Unidades', 'Uds').replaceAll('unidades', 'uds'))"/>
+        <xpath expr="//t[@t-foreach='props.order.orderlines || props.order.lines || []']" position="attributes">
+            <attribute name="t-foreach">(props.order &amp;&amp; (props.order.orderlines || props.order.lines)) || []</attribute>
+        </xpath>
+
+        <xpath expr="//t[@t-esc=&quot;(formatCurrency(props.order.amount_total || 0) || '').replaceAll('\u00A0','').replaceAll(' ','')&quot;]" position="replace">
+            <t t-esc="(formatCurrency(((props.order &amp;&amp; props.order.amount_total) || 0)) || '').replaceAll('\u00A0','').replaceAll(' ','')"/>
+        </xpath>
+
+        <xpath expr="//div[@t-if='props.order.getCashierName']" position="replace">
+            <div t-if="props.order &amp;&amp; props.order.getCashierName">
+                Atendido por: <t t-esc="props.order.getCashierName()"/>
+            </div>
         </xpath>
 
         <xpath expr="//div[@t-if='line.customerNote']" position="replace">
-            <div t-if="(line.getPrintableLineNote &amp;&amp; line.getPrintableLineNote()) || line.customerNote"
+            <div t-if="line.customerNote"
                  style="font-size: 9px; font-style: italic; margin-left: 3px; margin-bottom: 1px;">
-                [<t t-esc="(line.getPrintableLineNote &amp;&amp; line.getPrintableLineNote()) || line.customerNote"/>]
+                [<t t-esc="line.customerNote"/>]
             </div>
         </xpath>
     </t>

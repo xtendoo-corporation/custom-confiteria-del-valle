@@ -3,43 +3,51 @@
 import { patch } from "@web/core/utils/patch";
 import { PosOrderline } from "@point_of_sale/app/models/pos_order_line";
 
+const parseReceiptNote = (rawValue) => {
+    if (!rawValue || rawValue === "[]") {
+        return "";
+    }
+
+    if (typeof rawValue !== "string") {
+        return String(rawValue || "");
+    }
+
+    const trimmedValue = rawValue.trim();
+    if (!trimmedValue) {
+        return "";
+    }
+
+    if (!trimmedValue.startsWith("[")) {
+        return trimmedValue;
+    }
+
+    try {
+        const parsedLines = JSON.parse(trimmedValue);
+        if (!Array.isArray(parsedLines)) {
+            return trimmedValue;
+        }
+
+        const parsedTexts = parsedLines
+            .map((parsedLine) => parsedLine?.text)
+            .filter((parsedText) => Boolean(parsedText));
+        return parsedTexts.length ? parsedTexts.join(", ") : "";
+    } catch {
+        return trimmedValue;
+    }
+};
+
 patch(PosOrderline.prototype, {
+    getCustomerNote() {
+        const directCustomerNote = this.customer_note || this.customerNote || "";
+        const parsedCustomerNote = parseReceiptNote(directCustomerNote);
+        if (parsedCustomerNote) {
+            return parsedCustomerNote;
+        }
+
+        return parseReceiptNote(this.note || (this.getNote && this.getNote()) || "");
+    },
+
     getPrintableLineNote() {
-        const customerNote =
-            this.customer_note ||
-            this.customerNote ||
-            (this.getCustomerNote && this.getCustomerNote()) ||
-            "";
-
-        if (customerNote) {
-            return customerNote;
-        }
-
-        const rawNote = this.note || (this.getNote && this.getNote()) || "";
-        if (!rawNote || rawNote === "[]") {
-            return "";
-        }
-
-        if (typeof rawNote === "string") {
-            const trimmedNote = rawNote.trim();
-            if (trimmedNote.startsWith("[")) {
-                try {
-                    const parsedNotes = JSON.parse(trimmedNote);
-                    if (Array.isArray(parsedNotes)) {
-                        const noteTexts = parsedNotes
-                            .map((noteLine) => noteLine?.text)
-                            .filter((noteText) => Boolean(noteText));
-                        if (noteTexts.length) {
-                            return noteTexts.join(", ");
-                        }
-                    }
-                } catch {
-                    return trimmedNote;
-                }
-            }
-            return trimmedNote;
-        }
-
-        return String(rawNote || "");
+        return this.getCustomerNote();
     },
 });
