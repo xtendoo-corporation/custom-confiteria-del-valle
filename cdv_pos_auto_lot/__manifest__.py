@@ -25,10 +25,17 @@
     "depends": [
         "point_of_sale",
         "product_expiry",
+        "xtendoo_pos_receipt",
+        "pos_self_order",
     ],
     "assets": {
         "point_of_sale._assets_pos": [
             "cdv_pos_auto_lot/static/src/js/pos_auto_lot.js",
+            (
+                "before",
+                "pos_self_order/static/src/overrides/components/receipt_header/receipt_header.xml",
+                "cdv_pos_auto_lot/static/src/xml/pos_receipt_fix.xml",
+            ),
         ],
     },
     "installable": True,
