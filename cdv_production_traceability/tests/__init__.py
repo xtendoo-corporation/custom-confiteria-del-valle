@@ -6,3 +6,4 @@ from . import test_traceability_scenario
 from . import test_uom_production_preferred
 from . import test_mrp_bom_line_uom
 from . import test_mrp_production_uom
+from . import test_stock_picking_finished_product_restriction
