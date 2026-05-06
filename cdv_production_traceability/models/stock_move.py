@@ -1,9 +1,15 @@
-from odoo import api, models, _
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
 
 class StockMove(models.Model):
     _inherit = "stock.move"
+
+    cdv_picking_is_production_entry = fields.Boolean(
+        related="picking_id.is_production_entry",
+        string="Es parte de producción",
+        readonly=True,
+    )
 
     @api.depends("product_id", "picking_id.is_production_entry")
     def _compute_product_uom(self):
