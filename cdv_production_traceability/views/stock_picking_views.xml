@@ -33,19 +33,17 @@
         <field name="inherit_id" ref="stock.view_picking_form" />
         <field name="priority">100</field>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='origin']" position="after">
-                <field name="is_production_entry" />
+            <xpath expr="//field[@name='move_ids']" position="attributes">
+                <attribute name="context">{'default_company_id': company_id, 'default_date': scheduled_date, 'default_date_deadline': date_deadline, 'picking_type_code': picking_type_code, 'default_picking_id': id, 'form_view_ref': 'stock.view_stock_move_operations', 'address_in_id': partner_id, 'default_picking_type_id': picking_type_id, 'default_location_id': location_id, 'default_location_dest_id': location_dest_id, 'default_partner_id': partner_id, 'picking_state': state, 'default_is_production_entry': is_production_entry, 'cdv_limit_finished_products_for_production_entry': is_production_entry, 'default_cdv_picking_is_production_entry': is_production_entry, 'cdv_debug_product_filter': True}</attribute>
             </xpath>
             <xpath expr="//field[@name='move_ids']/list/field[@name='product_id']" position="before">
                 <field name="cdv_product_id_domain" column_invisible="1" />
                 <field name="cdv_picking_is_production_entry" column_invisible="1" />
             </xpath>
-             <xpath expr="//field[@name='product_id']" position="before">
-                <field name="cdv_picking_is_production_entry"/>
-            </xpath>
             <xpath expr="//field[@name='move_ids']/list/field[@name='product_id']" position="attributes">
-                <attribute name="domain">cdv_product_id_domain</attribute>
-                <attribute name="context">{'default_is_storable': True, 'cdv_limit_finished_products_for_production_entry': parent.is_production_entry, 'cdv_debug_product_filter': True}</attribute>
+                <attribute name="widget">many2one</attribute>
+                <attribute name="domain">[('product_tmpl_id.cdv_is_finished_product', '=', True), ('is_storable', '=', True), ('tracking', 'in', ['lot', 'serial'])] if parent.is_production_entry else []</attribute>
+                <attribute name="context">{'default_is_storable': True, 'default_is_production_entry': parent.is_production_entry, 'cdv_limit_finished_products_for_production_entry': parent.is_production_entry, 'cdv_picking_is_production_entry': parent.is_production_entry, 'default_cdv_picking_is_production_entry': parent.is_production_entry, 'cdv_debug_product_filter': True}</attribute>
             </xpath>
 
             <!-- Mostrar solo para partes de producción -->
@@ -93,12 +91,13 @@
         <field name="inherit_id" ref="stock.view_move_form" />
         <field name="arch" type="xml">
             <xpath expr="//field[@name='product_id']" position="before">
+                <field name="cdv_product_id_domain" invisible="1" />
                 <field name="cdv_picking_is_production_entry" invisible="1" />
             </xpath>
 
             <xpath expr="//field[@name='product_id']" position="attributes">
-                <attribute name="domain">[('cdv_is_finished_product', '=', True), ('is_storable', '=', True), ('tracking', 'in', ['lot', 'serial'])] if cdv_picking_is_production_entry else []</attribute>
-                <attribute name="context">{'cdv_limit_finished_products_for_production_entry': cdv_picking_is_production_entry}</attribute>
+                <attribute name="domain">cdv_product_id_domain</attribute>
+                <attribute name="context">{'cdv_limit_finished_products_for_production_entry': cdv_picking_is_production_entry, 'cdv_picking_is_production_entry': cdv_picking_is_production_entry, 'default_cdv_picking_is_production_entry': cdv_picking_is_production_entry}</attribute>
             </xpath>
          </field>
      </record>
@@ -109,12 +108,13 @@
          <field name="inherit_id" ref="stock.view_stock_move_operations" />
          <field name="arch" type="xml">
              <xpath expr="//field[@name='product_id']" position="before">
+                 <field name="cdv_product_id_domain" invisible="1" />
                  <field name="cdv_picking_is_production_entry" invisible="1" />
              </xpath>
 
              <xpath expr="//field[@name='product_id']" position="attributes">
-                 <attribute name="domain">[('cdv_is_finished_product', '=', True), ('is_storable', '=', True), ('tracking', 'in', ['lot', 'serial'])] if cdv_picking_is_production_entry else []</attribute>
-                 <attribute name="context">{'cdv_limit_finished_products_for_production_entry': cdv_picking_is_production_entry}</attribute>
+                 <attribute name="domain">cdv_product_id_domain</attribute>
+                 <attribute name="context">{'cdv_limit_finished_products_for_production_entry': cdv_picking_is_production_entry, 'cdv_picking_is_production_entry': cdv_picking_is_production_entry, 'default_cdv_picking_is_production_entry': cdv_picking_is_production_entry}</attribute>
             </xpath>
         </field>
     </record>

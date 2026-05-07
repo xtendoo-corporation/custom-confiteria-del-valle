@@ -64,6 +64,11 @@
         "report/cdv_traceability_report.xml",
         "report/cdv_forward_traceability_report.xml",
     ],
+    "assets": {
+        "web.assets_backend": [
+            "cdv_production_traceability/static/src/js/cdv_product_filter_debug.js",
+        ],
+    },
     "installable": True,
     "application": True,
     "auto_install": False,

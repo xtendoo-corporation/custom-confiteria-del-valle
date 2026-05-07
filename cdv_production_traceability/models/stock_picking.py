@@ -1,10 +1,54 @@
+import logging
+from xml.etree import ElementTree as ET
+
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 from datetime import date
 
 
+_logger = logging.getLogger(__name__)
+
+
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
+
+    def _cdv_debug_log_production_view(self, result, view_id, view_type):
+        if view_type != 'form' or not self.env.context.get('cdv_debug_product_filter'):
+            return
+        try:
+            arch = result.get('arch') or ''
+            root = ET.fromstring(arch)
+            product_node = None
+            move_node = None
+            for node in root.iter('field'):
+                if node.attrib.get('name') == 'move_ids' and move_node is None:
+                    move_node = node
+                if node.attrib.get('name') == 'product_id':
+                    product_node = node
+                    break
+            _logger.warning(
+                '[CDV VIEW] stock.picking.get_view view_id=%s view_type=%s ctx=%s move_ids_context=%s product_domain=%s product_context=%s widget=%s',
+                view_id,
+                view_type,
+                {
+                    'default_is_production_entry': self.env.context.get('default_is_production_entry'),
+                    'cdv_limit_finished_products_for_production_entry': self.env.context.get('cdv_limit_finished_products_for_production_entry'),
+                    'cdv_debug_product_filter': self.env.context.get('cdv_debug_product_filter'),
+                    'params': self.env.context.get('params'),
+                },
+                move_node.attrib.get('context') if move_node is not None else None,
+                product_node.attrib.get('domain') if product_node is not None else None,
+                product_node.attrib.get('context') if product_node is not None else None,
+                product_node.attrib.get('widget') if product_node is not None else None,
+            )
+        except Exception as err:  # pragma: no cover - depuración defensiva
+            _logger.warning('[CDV VIEW] Error registrando vista de producción: %s', err)
+
+    @api.model
+    def get_view(self, view_id=None, view_type='form', **options):
+        result = super().get_view(view_id=view_id, view_type=view_type, **options)
+        self._cdv_debug_log_production_view(result, view_id, view_type)
+        return result
 
     is_production_entry = fields.Boolean(
         string="Es parte de producción",

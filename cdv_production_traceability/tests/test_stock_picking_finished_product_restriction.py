@@ -79,6 +79,25 @@ class TestStockPickingFinishedProductRestriction(TransactionCase):
         )
         cls.valid_product = valid_template.product_variant_id
 
+        invalid_same_name_template = cls.env["product.template"].create(
+            {
+                "name": "Tartitas",
+                "tracking": "lot",
+                "is_storable": True,
+            }
+        )
+        cls.invalid_same_name_product = invalid_same_name_template.product_variant_id
+
+        valid_same_name_template = cls.env["product.template"].create(
+            {
+                "name": "Tartitas",
+                "tracking": "lot",
+                "is_storable": True,
+                "cdv_is_finished_product": True,
+            }
+        )
+        cls.valid_same_name_product = valid_same_name_template.product_variant_id
+
     def _get_move_vals(self, picking, product):
         return {
             "picking_id": picking.id,
@@ -93,7 +112,7 @@ class TestStockPickingFinishedProductRestriction(TransactionCase):
         """Un parte de producción no debe aceptar productos no elaborados."""
         with self.assertRaisesRegex(
             ValidationError,
-            "no está marcado como producto elaborado",
+            "no esta marcado como producto elaborado",
         ):
             self.env["stock.move"].create(
                 self._get_move_vals(self.production_picking, self.invalid_product)
@@ -125,7 +144,7 @@ class TestStockPickingFinishedProductRestriction(TransactionCase):
 
         with self.assertRaisesRegex(
             ValidationError,
-            "no está marcado como producto elaborado",
+            "no esta marcado como producto elaborado",
         ):
             move.write({"product_id": self.invalid_product.id})
 
@@ -135,16 +154,24 @@ class TestStockPickingFinishedProductRestriction(TransactionCase):
             default_is_production_entry=True
         ).get_view(self.env.ref("stock.view_picking_form").id, "form")["arch"]
         tree = etree.fromstring(arch)
+        move_nodes = tree.xpath("//field[@name='move_ids']")
         product_nodes = tree.xpath(
             "//field[@name='move_ids']/list/field[@name='product_id']"
         )
 
+        self.assertTrue(move_nodes)
         self.assertTrue(product_nodes)
+        move_context = move_nodes[0].attrib.get("context", "")
         domain = product_nodes[0].attrib.get("domain", "")
         context = product_nodes[0].attrib.get("context", "")
-        self.assertIn("cdv_is_finished_product", domain)
+        widget = product_nodes[0].attrib.get("widget", "")
+        self.assertIn("product_tmpl_id.cdv_is_finished_product", domain)
         self.assertIn("parent.is_production_entry", domain)
+        self.assertEqual(widget, "many2one")
+        self.assertIn("cdv_limit_finished_products_for_production_entry", move_context)
+        self.assertIn("default_cdv_picking_is_production_entry", move_context)
         self.assertIn("cdv_limit_finished_products_for_production_entry", context)
+        self.assertIn("cdv_picking_is_production_entry", context)
 
     def test_06_move_operations_form_domain_filters_finished_products(self):
         """El popup de operaciones de stock.move debe usar el mismo filtro."""
@@ -158,9 +185,9 @@ class TestStockPickingFinishedProductRestriction(TransactionCase):
         self.assertTrue(product_nodes)
         domain = product_nodes[0].attrib.get("domain", "")
         context = product_nodes[0].attrib.get("context", "")
-        self.assertIn("cdv_is_finished_product", domain)
-        self.assertIn("cdv_picking_is_production_entry", domain)
+        self.assertEqual(domain, "cdv_product_id_domain")
         self.assertIn("cdv_limit_finished_products_for_production_entry", context)
+        self.assertIn("cdv_picking_is_production_entry", context)
 
     def test_07_name_search_hides_non_finished_products_in_production_context(self):
         """El autocompletado no debe devolver productos no elaborados en producción."""
@@ -181,4 +208,34 @@ class TestStockPickingFinishedProductRestriction(TransactionCase):
         result_ids = {product_id for product_id, _display_name in results}
         self.assertIn(self.valid_product.id, result_ids)
         self.assertIn(self.invalid_product.id, result_ids)
+
+    def test_09_name_search_only_returns_finished_homonyms_in_production_context(self):
+        """Con dos productos homónimos solo debe aparecer el elaborado en producción."""
+        results = self.env["product.product"].with_context(
+            cdv_picking_is_production_entry=True,
+            default_cdv_picking_is_production_entry=True,
+            default_picking_id=self.production_picking.id,
+        ).name_search(name="Tartitas", operator="ilike", limit=20)
+
+        result_ids = [product_id for product_id, _display_name in results]
+        self.assertIn(self.valid_same_name_product.id, result_ids)
+        self.assertNotIn(self.invalid_same_name_product.id, result_ids)
+
+    def test_10_move_onchange_restricts_product_domain_for_production_picking(self):
+        """El onchange de stock.move debe restringir product_id en la vista inline."""
+        move = self.env["stock.move"].new(
+            {
+                "picking_id": self.production_picking.id,
+            }
+        )
+
+        result = move._onchange_cdv_product_id_domain()
+
+        self.assertTrue(result)
+        self.assertIn("domain", result)
+        self.assertIn("product_id", result["domain"])
+        self.assertIn(
+            ("product_tmpl_id.cdv_is_finished_product", "=", True),
+            result["domain"]["product_id"],
+        )
 
