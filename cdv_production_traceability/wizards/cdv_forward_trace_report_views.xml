@@ -49,7 +49,7 @@
                             <field name="date_from"/>
                             <field name="date_to"/>
                             <field name="raw_material_id" options="{'no_create': True}"/>
-                            <field name="raw_material_lot_id" options="{'no_create': True}"/>
+                            <field name="raw_material_lot_id" options="{'no_create': True}" domain="[('product_id', '=', raw_material_id)]"/>
                         </group>
                         <group string="Resumen" invisible="not line_ids">
                             <field name="total_finished_products" readonly="1"/>
