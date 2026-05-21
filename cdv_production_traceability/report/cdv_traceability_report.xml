@@ -37,7 +37,9 @@
                             <div class="col-6">
                                 <h5>Resumen</h5>
                                 <strong>Total de producciones:</strong> <span t-esc="o.total_productions"/><br/>
-                                <strong>Total de unidades producidas:</strong> <span t-esc="o.total_qty_produced"/><br/>
+                                <strong>Total de unidades producidas:</strong> 
+                                <span t-esc="o.total_qty_produced"/>
+                                <span t-esc="o.total_qty_uom_name"/><br/>
                                 <strong>Total de componentes rastreados:</strong> <span t-esc="o.total_components"/><br/>
                             </div>
                         </div>
@@ -47,6 +49,7 @@
                             <thead>
                                 <tr style="background-color: #f5f5f5; color: #000;">
                                     <th>Fecha</th>
+                                    <th>Cantidad Producida</th>
                                     <th>Materia Prima</th>
                                     <th>Lote Materia Prima</th>
                                     <th>Cantidad Estándar</th>
@@ -57,6 +60,10 @@
                                 <t t-foreach="o.line_ids" t-as="line">
                                     <tr>
                                         <td><span t-field="line.production_date"/></td>
+                                        <td>
+                                            <span t-field="line.finished_qty"/>
+                                            <span t-field="line.finished_uom_id"/>
+                                        </td>
                                         <td><span t-field="line.component_product_id"/></td>
                                         <td>
                                             <span t-if="line.component_lot_id" t-field="line.component_lot_id"/>

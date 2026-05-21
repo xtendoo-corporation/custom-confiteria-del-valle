@@ -24,66 +24,76 @@ class PosOrderLine(models.Model):
             ("company_id", "=", False),
             ("company_id", "=", company_id),
             ("product_id", "=", product_id),
-            ("location_id", "in", src_loc.child_internal_location_ids.ids),
+            ("location_id", "child_of", src_loc.id),
             ("quantity", ">", 0),
             ("lot_id", "!=", False),
         ]
 
-        groups = (
-            self.sudo()
-            .env["stock.quant"]
-            ._read_group(
-                domain=domain,
-                groupby=["lot_id"],
-                aggregates=["quantity:sum"],
-            )
+        quants = self.sudo().env["stock.quant"].search(
+            domain,
         )
 
-        result = []
-        for lot_recordset, total_quantity in groups:
-            if lot_recordset:
-                result.append(
-                    {
-                        "id": lot_recordset.id,
-                        "name": lot_recordset.name,
-                        "product_qty": total_quantity,
-                        "expiration_date": (
-                            lot_recordset.expiration_date.isoformat()
-                            if hasattr(lot_recordset, "expiration_date")
-                            and lot_recordset.expiration_date
-                            else False
-                        ),
-                    }
-                )
+        from datetime import datetime
+        def lot_sort_key(q):
+            lot_name = q.lot_id.name or ""
+            parsed_date = None
+            if len(lot_name) >= 6:
+                try:
+                    # Intentar parsear los primeros 6 caracteres como DDMMYY
+                    parsed_date = datetime.strptime(lot_name[:6], '%d%m%y')
+                except ValueError:
+                    pass
+            
+            fallback_date = q.lot_id.create_date or q.create_date or datetime.min
+            # Ordenar primero por la fecha del nombre, luego por create_date
+            return (parsed_date or datetime.min, fallback_date)
 
-        # Sort by expiration_date ASC (FEFO), nulls last
-        result.sort(
-            key=lambda x: (
-                x["expiration_date"] is False,
-                x["expiration_date"] or "",
-            )
-        )
+        quants = quants.sorted(key=lot_sort_key, reverse=True)
+
+        lot_dict = {}
+        for q in quants:
+            if q.lot_id.id not in lot_dict:
+                lot_dict[q.lot_id.id] = {
+                    "id": q.lot_id.id,
+                    "name": q.lot_id.name,
+                    "product_qty": 0,
+                    "create_date": q.lot_id.create_date.isoformat() if q.lot_id.create_date else "",
+                }
+            lot_dict[q.lot_id.id]["product_qty"] += q.quantity
+
+        result = list(lot_dict.values())
+
+        import logging
+        _logger = logging.getLogger(__name__)
+        _logger.warning("POS AUTO LOT ASSIGN RESULT: %s", result)
 
         if result:
             return result
 
         # 2. No stock available — find the last created lot for this product
-        last_lot = (
-            self.sudo()
-            .env["stock.lot"]
-            .search(
-                [
-                    ("product_id", "=", product_id),
-                    "|",
-                    ("company_id", "=", False),
-                    ("company_id", "=", company_id),
-                ],
-                order="create_date DESC",
-                limit=1,
-            )
-        )
+        all_lots = self.sudo().env["stock.lot"].search([
+            ("product_id", "=", product_id),
+            "|",
+            ("company_id", "=", False),
+            ("company_id", "=", company_id),
+        ])
+        
+        if all_lots:
+            from datetime import datetime
+            def fallback_sort_key(lot):
+                lot_name = lot.name or ""
+                parsed_date = None
+                if len(lot_name) >= 6:
+                    try:
+                        parsed_date = datetime.strptime(lot_name[:6], '%d%m%y')
+                    except ValueError:
+                        pass
+                fallback_date = lot.create_date or datetime.min
+                return (parsed_date or datetime.min, fallback_date)
 
-        if last_lot:
+            sorted_lots = all_lots.sorted(key=fallback_sort_key, reverse=True)
+            last_lot = sorted_lots[0]
+            
             return [
                 {
                     "id": last_lot.id,

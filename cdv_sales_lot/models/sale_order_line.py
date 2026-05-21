@@ -10,14 +10,19 @@ class SaleOrderLine(models.Model):
     
     lot_qty_insufficient = fields.Boolean(
         string='Stock de lote insuficiente',
-        compute='_compute_lot_qty_insufficient'
+        compute='_compute_lot_data'
+    )
+    lot_available_qty = fields.Float(
+        string='Stock Lote',
+        compute='_compute_lot_data'
     )
 
     @api.depends('lot_ids', 'product_uom_qty', 'product_id')
-    def _compute_lot_qty_insufficient(self):
+    def _compute_lot_data(self):
         for line in self:
             if not line.lot_ids or not line.product_id:
                 line.lot_qty_insufficient = False
+                line.lot_available_qty = 0.0
                 continue
                 
             # Extraer IDs reales de base de datos para evitar NewIds en onchange
@@ -27,6 +32,7 @@ class SaleOrderLine(models.Model):
             
             if not lot_ids or not product_id:
                 line.lot_qty_insufficient = False
+                line.lot_available_qty = 0.0
                 continue
                 
             # Buscar quants para estos lotes en ubicaciones internas
@@ -52,6 +58,7 @@ class SaleOrderLine(models.Model):
                      free_qty -= quant.reserved_quantity
                 total_stock += free_qty
                 
+            line.lot_available_qty = total_stock
             line.lot_qty_insufficient = line.product_uom_qty > total_stock
 
     @api.onchange('product_id')
@@ -59,16 +66,31 @@ class SaleOrderLine(models.Model):
         for line in self:
             line.lot_ids = [(5, 0, 0)] # Limpiar lotes actuales
             if line.product_id and line.product_id.tracking in ['lot', 'serial']:
-                quant = self.env['stock.quant'].search([
+                quants = self.env['stock.quant'].search([
                     ('product_id', '=', line.product_id.id),
+                    '|',
                     ('company_id', '=', line.company_id.id or self.env.company.id),
-                    ('location_id.usage', '=', 'internal'),
+                    ('company_id', '=', False),
+                    ('location_id', 'child_of', line.order_id.warehouse_id.lot_stock_id.id),
                     ('quantity', '>', 0),
                     ('lot_id', '!=', False)
-                ], order='in_date asc, id asc', limit=1)
+                ])
                 
-                if quant:
-                    line.lot_ids = [(4, quant.lot_id.id)]
+                if quants:
+                    from datetime import datetime
+                    def lot_sort_key(q):
+                        lot_name = q.lot_id.name or ""
+                        parsed_date = None
+                        if len(lot_name) >= 6:
+                            try:
+                                parsed_date = datetime.strptime(lot_name[:6], '%d%m%y')
+                            except ValueError:
+                                pass
+                        fallback_date = q.lot_id.create_date or q.create_date or datetime.min
+                        return (parsed_date or datetime.min, fallback_date)
+
+                    sorted_quants = quants.sorted(key=lot_sort_key, reverse=True)
+                    line.lot_ids = [(4, sorted_quants[0].lot_id.id)]
 
     def action_lot_warning(self):
         self.ensure_one()

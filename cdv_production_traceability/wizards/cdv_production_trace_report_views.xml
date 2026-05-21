@@ -8,6 +8,7 @@
         <field name="arch" type="xml">
             <list decoration-danger="trace_status == 'missing'" decoration-success="trace_status == 'found'" create="false" edit="false" delete="false">
                 <field name="production_date" string="Fecha"/>
+                <field name="finished_qty" string="Cantidad Producida"/>
                 <field name="component_product_id" string="Materia Prima"/>
                 <field name="component_lot_id" string="Lote Materia Prima"/>
                 <field name="trace_status" widget="badge" string="Estado"/>
@@ -35,13 +36,26 @@
                         </group>
                         <group string="Resumen" invisible="not line_ids">
                             <field name="total_productions" readonly="1"/>
-                            <field name="total_qty_produced" readonly="1"/>
+                            <label for="total_qty_produced"/>
+                            <div class="o_row">
+                                <field name="total_qty_produced" readonly="1" nolabel="1"/>
+                                <field name="total_qty_uom_name" readonly="1" nolabel="1"/>
+                            </div>
                             <field name="total_components" readonly="1"/>
                         </group>
                     </group>
                     <notebook invisible="not line_ids">
                         <page string="Detalle de Materias Primas" name="trace_lines">
-                            <field name="line_ids" nolabel="1"/>
+                            <field name="line_ids" nolabel="1">
+                                <list decoration-danger="trace_status == 'missing'" decoration-success="trace_status == 'found'" create="false" edit="false" delete="false">
+                                    <field name="production_date" string="Fecha"/>
+                                    <field name="finished_qty" string="Cantidad Producida"/>
+                                    <field name="finished_uom_id" string="Unidad"/>
+                                    <field name="component_product_id" string="Materia Prima"/>
+                                    <field name="component_lot_id" string="Lote Materia Prima"/>
+                                    <field name="trace_status" widget="badge" string="Estado"/>
+                                </list>
+                            </field>
                         </page>
                     </notebook>
                 </sheet>
@@ -50,6 +64,8 @@
                             class="btn-primary" invisible="line_ids"/>
                     <button string="Imprimir informe" name="action_print_report" type="object"
                             class="btn-primary" invisible="not line_ids"/>
+                    <button string="Exportar a Excel" name="action_export_excel" type="object"
+                            class="btn-secondary" invisible="not line_ids"/>
                     <button string="Nueva búsqueda" name="action_reset" type="object"
                             class="btn-secondary" invisible="not line_ids"/>
                     <button string="Cancelar" class="btn-secondary" special="cancel"/>

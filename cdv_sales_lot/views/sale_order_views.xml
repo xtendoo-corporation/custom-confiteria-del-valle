@@ -16,6 +16,7 @@
             <xpath expr="//field[@name='order_line']/list/field[@name='name']" position="after">
                 <field name="lot_ids" widget="many2many_tags" optional="show"
                     domain="[('product_id', '=', product_id)]" />
+                <field name="lot_available_qty" optional="show" readonly="1" string="Stock Lote"/>
                 <field name="lot_qty_insufficient" column_invisible="1" />
                 <button name="%(cdv_sales_lot.action_view_available_lots)d"
                     type="action"

@@ -1,6 +1,8 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 from datetime import datetime, date
+import base64
+import io
 
 
 class CdvProductionTraceReport(models.TransientModel):
@@ -61,6 +63,11 @@ class CdvProductionTraceReport(models.TransientModel):
         compute="_compute_totals",
         store=False,
     )
+    total_qty_uom_name = fields.Char(
+        string="Unidad de medida",
+        compute="_compute_totals",
+        store=False,
+    )
 
     @api.depends("line_ids")
     def _compute_totals(self):
@@ -79,6 +86,9 @@ class CdvProductionTraceReport(models.TransientModel):
                 if key not in qty_dict:
                     qty_dict[key] = line.finished_qty
             record.total_qty_produced = sum(qty_dict.values())
+            # Obtener el nombre de la unidad
+            uom_names = set(record.line_ids.mapped('finished_uom_id.name'))
+            record.total_qty_uom_name = ", ".join(filter(None, uom_names))
 
     @api.onchange("product_id")
     def _onchange_product_id(self):
@@ -280,17 +290,140 @@ class CdvProductionTraceReport(models.TransientModel):
         ).report_action(self)
 
     def action_export_excel(self):
-        """Exportar a Excel (opcional - requiere módulo adicional)"""
+        """Exportar a Excel usando openpyxl"""
         self.ensure_one()
 
         if not self.line_ids:
             raise UserError(_("Debe calcular la trazabilidad antes de exportar."))
 
-        # Esta funcionalidad requeriría un módulo adicional para exportar a Excel
-        # Por ahora mostramos un mensaje
-        raise UserError(
-            _("La exportación a Excel estará disponible en una versión futura.")
+        try:
+            import openpyxl
+            from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+            from openpyxl.utils import get_column_letter
+        except ImportError:
+            raise UserError(_("La librería openpyxl no está instalada en el servidor."))
+
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Trazabilidad"
+
+        # Estilos
+        header_font = Font(bold=True, color="FFFFFF", size=11)
+        header_fill = PatternFill("solid", fgColor="4F81BD")
+        summary_font = Font(bold=True, size=10)
+        summary_fill = PatternFill("solid", fgColor="DCE6F1")
+        thin = Side(border_style="thin", color="AAAAAA")
+        border = Border(left=thin, right=thin, top=thin, bottom=thin)
+        center = Alignment(horizontal="center", vertical="center")
+        wrap = Alignment(wrap_text=True, vertical="center")
+
+        # --- Título ---
+        ws.merge_cells("A1:G1")
+        title_cell = ws["A1"]
+        title_cell.value = "Informe de Producto Elaborado"
+        title_cell.font = Font(bold=True, size=14, color="1F3864")
+        title_cell.alignment = center
+        ws.row_dimensions[1].height = 24
+
+        # --- Filtros y Resumen ---
+        ws.append([])
+        ws.append(["FILTROS", "", "", "RESUMEN", "", "", ""])
+        ws["A3"].font = summary_font
+        ws["D3"].font = summary_font
+
+        product_name = self.product_id.display_name if self.product_id else "Todos"
+        lot_name = self.lot_id.name if self.lot_id else "Todos"
+
+        rows_info = [
+            ("Fecha desde:", str(self.date_from), "", "Total producciones:", self.total_productions, "", ""),
+            ("Fecha hasta:", str(self.date_to), "", "Total unidades producidas:", f"{self.total_qty_produced} {self.total_qty_uom_name or ''}".strip(), "", ""),
+            ("Producto:", product_name, "", "Total componentes rastreados:", self.total_components, "", ""),
+            ("Lote:", lot_name, "", "", "", "", ""),
+        ]
+        for row_data in rows_info:
+            ws.append(list(row_data))
+            row_num = ws.max_row
+            ws.cell(row=row_num, column=1).font = Font(bold=True, size=10)
+            ws.cell(row=row_num, column=4).font = Font(bold=True, size=10)
+
+        ws.append([])
+
+        # --- Cabecera de tabla ---
+        header_row = [
+            "Fecha",
+            "Producto Terminado",
+            "Lote Producto",
+            "Cantidad Producida",
+            "Materia Prima",
+            "Lote Materia Prima",
+            "Estado",
+        ]
+        ws.append(header_row)
+        header_row_num = ws.max_row
+        for col_idx, _ in enumerate(header_row, 1):
+            cell = ws.cell(row=header_row_num, column=col_idx)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = center
+            cell.border = border
+
+        # --- Filas de datos ---
+        fill_found = PatternFill("solid", fgColor="E2EFDA")
+        fill_missing = PatternFill("solid", fgColor="FCE4D6")
+
+        for line in self.line_ids:
+            status_text = "Encontrado" if line.trace_status == "found" else "No encontrado"
+            row_vals = [
+                str(line.production_date) if line.production_date else "",
+                line.finished_product_id.display_name if line.finished_product_id else "",
+                line.finished_lot_id.name if line.finished_lot_id else "",
+                f"{line.finished_qty} {line.finished_uom_id.name if line.finished_uom_id else ''}".strip(),
+                line.component_product_id.display_name if line.component_product_id else "",
+                line.component_lot_id.name if line.component_lot_id else "",
+                status_text,
+            ]
+            ws.append(row_vals)
+            row_num = ws.max_row
+            row_fill = fill_found if line.trace_status == "found" else fill_missing
+            for col_idx in range(1, 8):
+                cell = ws.cell(row=row_num, column=col_idx)
+                cell.fill = row_fill
+                cell.border = border
+                cell.alignment = wrap
+            # Cantidad con formato numérico
+            ws.cell(row=row_num, column=4).number_format = "0.00"
+            ws.cell(row=row_num, column=4).alignment = Alignment(horizontal="right", vertical="center")
+
+        # --- Ajustar anchos de columna ---
+        col_widths = [14, 28, 18, 18, 28, 18, 16]
+        for idx, width in enumerate(col_widths, 1):
+            ws.column_dimensions[get_column_letter(idx)].width = width
+
+        # --- Guardar en buffer y crear adjunto ---
+        buffer = io.BytesIO()
+        wb.save(buffer)
+        buffer.seek(0)
+        file_data = base64.b64encode(buffer.read())
+
+        filename = "trazabilidad_%s_%s.xlsx" % (
+            (self.product_id.default_code or self.product_id.name or "producto").replace(" ", "_"),
+            self.lot_id.name.replace(" ", "_") if self.lot_id else "todos",
         )
+
+        attachment = self.env["ir.attachment"].create({
+            "name": filename,
+            "type": "binary",
+            "datas": file_data,
+            "mimetype": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "res_model": self._name,
+            "res_id": self.id,
+        })
+
+        return {
+            "type": "ir.actions.act_url",
+            "url": "/web/content/%d?download=true" % attachment.id,
+            "target": "new",
+        }
 
     def action_reset(self):
         """Volver a borrador para nueva búsqueda"""
