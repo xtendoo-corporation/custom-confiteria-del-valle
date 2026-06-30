@@ -74,6 +74,16 @@
 
             <!-- Agregar botón de procesamiento -->
             <xpath expr="//header/button[@name='action_confirm']" position="before">
+                <button name="action_import_stock_lots_from_source"
+                    string="Importar stock con lotes"
+                    type="object"
+                    invisible="picking_type_code != 'internal' or state != 'draft' or is_production_entry == True"
+                    help="Carga todos los productos con lote y stock disponibles en la ubicación origen del traslado" />
+                <button name="action_import_finished_products"
+                    string="Importar elaborados"
+                    type="object"
+                    invisible="picking_type_code != 'internal' or state != 'draft' or is_production_entry == True"
+                    help="Carga todos los productos elaborados para indicar solo las unidades a trasladar" />
                 <button name="action_process_production"
                     string="Procesar Producción"
                     type="object"

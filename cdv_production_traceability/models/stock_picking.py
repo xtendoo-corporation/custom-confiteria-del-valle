@@ -8,9 +8,118 @@ from datetime import date
 
 _logger = logging.getLogger(__name__)
 
+_CDV_INTERNAL_FINISHED_PRODUCT_DOMAIN = [
+    ('product_tmpl_id.cdv_is_finished_product', '=', True),
+    ('is_storable', '=', True),
+]
+
 
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
+
+    def _cdv_is_internal_finished_transfer(self):
+        self.ensure_one()
+        return self.picking_type_id.code == 'internal' and not self.is_production_entry
+
+    def action_import_finished_products(self):
+        self.ensure_one()
+
+        if not self._cdv_is_internal_finished_transfer() or self.state != 'draft':
+            return False
+
+        existing_products = self.move_ids.filtered(
+            lambda move: move.state != 'cancel'
+        ).mapped('product_id')
+        products_to_add = self.env['product.product'].search(
+            _CDV_INTERNAL_FINISHED_PRODUCT_DOMAIN
+        ) - existing_products
+
+        move_vals_list = []
+        for product in products_to_add:
+            move_vals_list.append(
+                {
+                    'picking_id': self.id,
+                    'product_id': product.id,
+                    'product_uom_qty': 0.0,
+                    'product_uom': product.uom_id.id,
+                    'location_id': self.location_id.id,
+                    'location_dest_id': self.location_dest_id.id,
+                }
+            )
+
+        if move_vals_list:
+            self.env['stock.move'].create(move_vals_list)
+
+        return {'type': 'ir.actions.client', 'tag': 'reload'}
+
+    def action_import_stock_lots_from_source(self):
+        self.ensure_one()
+
+        if not self._cdv_is_internal_finished_transfer() or self.state != 'draft':
+            return False
+
+        existing_pairs = {
+            (line.product_id.id, line.lot_id.id)
+            for line in self.move_line_ids.filtered(lambda line: line.lot_id and line.state != 'cancel')
+        }
+        quant_domain = [
+            ('location_id', 'child_of', self.location_id.id),
+            ('quantity', '>', 0),
+            ('lot_id', '!=', False),
+            ('product_id.is_storable', '=', True),
+        ]
+        quants = self.env['stock.quant'].search(quant_domain, order='product_id, lot_id, in_date, id')
+
+        move_vals_list = []
+        for quant in quants:
+            pair = (quant.product_id.id, quant.lot_id.id)
+            if pair in existing_pairs:
+                continue
+
+            available_qty = quant.quantity - quant.reserved_quantity
+            if quant.product_uom_id.is_zero(available_qty):
+                continue
+
+            move_vals_list.append(
+                {
+                    'picking_id': self.id,
+                    'product_id': quant.product_id.id,
+                    'product_uom_qty': available_qty,
+                    'product_uom': quant.product_uom_id.id,
+                    'location_id': quant.location_id.id,
+                    'location_dest_id': self.location_dest_id.id,
+                    'move_line_ids': [
+                        (
+                            0,
+                            0,
+                            {
+                                'picking_id': self.id,
+                                'product_id': quant.product_id.id,
+                                'product_uom_id': quant.product_uom_id.id,
+                                'quantity': available_qty,
+                                'location_id': quant.location_id.id,
+                                'location_dest_id': self.location_dest_id.id,
+                                'lot_id': quant.lot_id.id,
+                            },
+                        )
+                    ],
+                }
+            )
+            existing_pairs.add(pair)
+
+        if move_vals_list:
+            self.env['stock.move'].create(move_vals_list)
+
+        return {'type': 'ir.actions.client', 'tag': 'reload'}
+
+    def _cdv_prepare_internal_finished_transfer_validation(self):
+        for picking in self.filtered(lambda item: item._cdv_is_internal_finished_transfer()):
+            zero_qty_moves = picking.move_ids.filtered(
+                lambda move: move.state not in ['done', 'cancel']
+                and move.product_uom.is_zero(move.product_uom_qty)
+            )
+            if zero_qty_moves:
+                zero_qty_moves.unlink()
 
     def _cdv_debug_log_production_view(self, result, view_id, view_type):
         if view_type != 'form' or not self.env.context.get('cdv_debug_product_filter'):
@@ -216,6 +325,8 @@ class StockPicking(models.Model):
 
     def button_validate(self):
         """Asegurar que los lotes se asignen antes de validar"""
+        self._cdv_prepare_internal_finished_transfer_validation()
+
         for picking in self:
             if picking.is_production_entry and picking.lot_name:
                 for move in picking.move_ids:
