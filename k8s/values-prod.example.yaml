@@ -1,0 +1,119 @@
+nameOverride: odoo
+fullnameOverride: odoo
+
+image:
+  repository: CHANGE_ME
+  tag: CHANGE_ME
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  ports:
+    http: 8069
+    longpolling: 8072
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations: {}
+  hosts:
+    - host: CHANGE_ME
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: CHANGE_ME
+      hosts:
+        - CHANGE_ME
+
+resources:
+  requests:
+    cpu: 300m
+    memory: 700Mi
+  limits:
+    cpu: "1"
+    memory: 1200Mi
+
+persistence:
+  enabled: true
+  storageClass: CHANGE_ME
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+  mountPath: /var/lib/odoo
+
+env:
+  - name: DB_FILTER
+    value: "^prod"
+  - name: DOODBA_ENVIRONMENT
+    value: prod
+  - name: INITIAL_LANG
+    value: en_US
+  - name: LIST_DB
+    value: "false"
+  - name: ODOO_BUS_PUBLIC_SAMESITE_WS
+    value: "1"
+  - name: PGDATABASE
+    value: prod
+  - name: PGUSER
+    value: odoo
+  - name: PGHOST
+    value: postgres
+  - name: PROXY_MODE
+    value: "true"
+
+odoo:
+  command:
+    - odoo
+
+existingSecret: odoo
+existingSecretPasswordKey: ADMIN_PASSWORD
+
+postgresql:
+  enabled: true
+  auth:
+    existingSecret: postgres
+    secretKeys:
+      adminPasswordKey: POSTGRES_PASSWORD
+      userPasswordKey: POSTGRES_PASSWORD
+  primary:
+    persistence:
+      enabled: true
+      storageClass: CHANGE_ME
+      size: 10Gi
+    resources:
+      requests:
+        cpu: 150m
+        memory: 256Mi
+      limits:
+        cpu: "500m"
+        memory: 512Mi
+    extendedConfiguration: |
+      work_mem = 512MB
+
+externalDatabase:
+  enabled: false
+  host: CHANGE_ME
+  port: 5432
+  user: odoo
+  database: prod
+  existingSecret: postgres
+  existingSecretPasswordKey: PGPASSWORD
+
+notes:
+  composeSources:
+    - common.yaml
+    - prod.yaml
+  droppedDevOnlyServices:
+    - odoo_proxy
+    - pgweb
+    - proxy_ovh
+    - proxy_cajon
+    - proxy_fonts_googleapis_com
+    - proxy_fonts_gstatic_com
+    - proxy_www_google_com
+    - proxy_www_googleapis_com
+    - proxy_www_gravatar_com
+    - proxy_website_api_odoo_com
