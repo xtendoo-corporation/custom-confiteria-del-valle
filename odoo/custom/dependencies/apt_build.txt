@@ -1,0 +1,5 @@
+build-essential
+gcc
+pkg-config
+python3-dev
+libcairo2-dev

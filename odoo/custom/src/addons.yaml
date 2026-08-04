@@ -1,0 +1,90 @@
+account-financial-reporting: ["*"]
+account-financial-tools: ["*"]
+account-fiscal-rule: ["*"]
+account-invoicing: ["*"]
+account-invoice-reporting: ["*"]
+account-payment: ["*"]
+account-reconcile: ["*"]
+bank-payment: ["*"]
+bank-statement-import: ["*"]
+brand: ["*"]
+crm: ["*"]
+connector: ["*"]
+commission: ["*"]
+community-data-files: ["*"]
+delivery-carrier: ["*"]
+e-commerce: ["*"]
+edi: ["*"]
+edi-framework: ["*"]
+field-service: ["*"]
+helpdesk: ["*"]
+hr: ["*"]
+l10n-spain: ["*"]
+hr-holidays: ["*"]
+manufacture: ["*"]
+maintenance: ["*"]
+mis-builder: ["*"]
+partner-contact: ["*"]
+product-attribute: ["*"]
+pos: ["*"]
+project: ["*"]
+purchase-workflow: ["*"]
+queue: ["*"]
+reporting-engine: ["*"]
+sale-workflow: ["*"]
+server-backend: ["*"]
+server-brand: ["*"]
+server-tools: ["*"]
+server-ux: ["*"]
+social: ["*"]
+spreadsheet: ["*"]
+stock-logistics-reporting: ["*"]
+stock-logistics-warehouse: ["*"]
+stock-logistics-workflow: ["*"]
+web: ["*"]
+website: ["*"]
+openupgrade: ["*"]
+
+---
+# Custom repositories
+
+ENV:
+  DEFAULT_REPO_PATTERN: https://github.com/xtendoo-corporation/{}.git
+  ODOO_VERSION: 19.0
+custom-ganafote: ["*"]
+xtendoo: ["*"] #
+xtendoo-pos-conventional: ["*"] #
+
+margin-analysis: ["*"]
+
+custom-msc: ["*"] # Commented: Verify if 19.0 branch exists
+custom-sara-velasco: ["*"]
+custom-aicia: ["*"] # Commented: Verify if 19.0 branch exists
+custom-forma: ["*"] # Commented: Verify if 19.0 branch exists
+custom-kolac: ["*"] # Commented: Verify if 19.0 branch exists
+custom-confiteria-del-valle: ["*"] # Commented: Verify if 19.0 branch exists
+custom-peluquerias: ["*"] # Commented: Verify if 19.0 branch exists
+custom-cleanmart: ["*"] # Commented: Verify if 19.0 branch exists
+custom-luigi: ["*"] # Commented: Verify if 19.0 branch exists
+custom-la-casa-de-guadalupe: ["*"] # Commented: Verify if 19.0 branch exists
+custom-luisbotello: ["*"] # Commented: Verify if 19.0 branch exists
+custom-embutidos-el-cid: ["*"] # Commented: Verify if 19.0 branch exists
+custom-matriz-almonte: ["*"]
+
+---
+# Requiere GITHUB_PAT_XTENDOO exportada en el entorno antes del build
+# (token de manuelcalerosolis con acceso a xtendoo-corporation/custom-fidetia).
+ENV:
+  DEFAULT_REPO_PATTERN: https://manuelcalerosolis:${GITHUB_PAT_XTENDOO}@github.com/xtendoo-corporation/{}.git
+  ODOO_VERSION: 19.0
+custom-fidetia: ["*"]
+
+---
+# Odoo Enterprise repository from manuelcalerosolis personal account
+# Requiere GITHUB_PAT_ENTERPRISE exportada en el entorno antes del build
+# (token de manuelcalerosolis con acceso a odoo/enterprise).
+
+ENV:
+  DEFAULT_REPO_PATTERN: https://manuelcalerosolis:${GITHUB_PAT_ENTERPRISE}@github.com/manuelcalerosolis/{}.git
+  ODOO_VERSION: 19.0
+enterprise: ["*"]

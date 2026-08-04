@@ -1,0 +1,62 @@
+# See https://github.com/Tecnativa/doodba#optodoocustomsrcreposyaml
+./odoo:
+  defaults:
+    # Shallow repositories ($DEPTH_DEFAULT=1) are faster & thinner
+    # You may need a bigger depth when merging PRs (use $DEPTH_MERGE
+    # for a sane value of 100 commits)
+    depth: $DEPTH_DEFAULT
+  remotes:
+    ocb: https://github.com/OCA/OCB.git
+    odoo: https://github.com/odoo/odoo.git
+    openupgrade: https://github.com/OCA/OpenUpgrade.git
+  target: ocb $ODOO_VERSION
+  merges:
+    - ocb $ODOO_VERSION
+stock-logistics-workflow:
+  defaults:
+    depth: $DEPTH_MERGE
+  remotes:
+    origin: https://github.com/OCA/stock-logistics-workflow.git
+  target: origin $ODOO_VERSION
+  merges:
+    - origin $ODOO_VERSION
+    - origin refs/pull/2151/head # stock_restrict_lot
+stock-logistics-barcode:
+  defaults:
+    depth: $DEPTH_MERGE
+  remotes:
+    origin: https://github.com/OCA/stock-logistics-barcode.git
+  target: origin $ODOO_VERSION
+  merges:
+    - origin $ODOO_VERSION
+    - origin refs/pull/723/head # product_multi_barcode
+web:
+  defaults:
+    depth: $DEPTH_MERGE
+  remotes:
+    origin: https://github.com/OCA/web.git
+  target: origin $ODOO_VERSION
+  merges:
+    - origin $ODOO_VERSION
+    - origin refs/pull/3382/head # web_m2x_options
+    - origin refs/pull/3393/head # web_m2x_options_manager
+sale-workflow:
+  defaults:
+    # Use a larger depth to avoid unrelated histories error when pulling older PRs
+    depth: 100
+  remotes:
+    origin: https://github.com/OCA/sale-workflow.git
+  target: origin $ODOO_VERSION
+  merges:
+    - origin $ODOO_VERSION
+    - origin refs/pull/3965/head #sale_triple_discount
+l10n-spain:
+  defaults:
+    # Use a larger depth to avoid unrelated histories error when pulling older PRs
+    depth: 100
+  remotes:
+    origin: https://github.com/OCA/l10n-spain.git
+  target: origin $ODOO_VERSION
+  merges:
+    - origin $ODOO_VERSION
+    - origin refs/pull/5055/head #l10n_es_account_asset

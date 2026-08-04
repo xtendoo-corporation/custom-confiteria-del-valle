@@ -1,0 +1,187 @@
+services:
+  odoo_proxy:
+    image: ghcr.io/tecnativa/docker-whitelist:latest
+    depends_on:
+      - odoo
+    networks: &public
+      default:
+      public:
+    ports:
+      - "127.0.0.1:19899:6899"
+      - "127.0.0.1:19069:8069"
+      - "127.0.0.1:19072:8072"
+    environment:
+      PORT: "6899 8069 8072"
+      TARGET: odoo
+
+  odoo:
+    extends:
+      file: common.yaml
+      service: odoo
+    build:
+      args:
+        # To aggregate in development, use `setup-devel.yaml`
+        AGGREGATE: "false"
+        # Export these variables to own files created by odoo in your filesystem
+        UID: "${UID:-1000}"
+        GID: "${GID:-1000}"
+        # No need for this in development
+        PIP_INSTALL_ODOO: "false"
+        CLEAN: "false"
+        COMPILE: "false"
+    environment:
+      DOODBA_ENVIRONMENT: "${DOODBA_ENVIRONMENT-devel}"
+      INITIAL_LANG: "en_US"
+      LIST_DB: "true"
+      DEBUGPY_ENABLE: "${DOODBA_DEBUGPY_ENABLE:-0}"
+      PGDATABASE: &dbname botello
+      AGGREGATE: "false"
+      PYTHONDONTWRITEBYTECODE: 1
+      PYTHONOPTIMIZE: ""
+      PYTHONPATH: /opt/odoo/custom/src/odoo
+      SMTP_PORT: "1025"
+      WDB_WEB_PORT: "19984"
+      # To avoid installing demo data export DOODBA_WITHOUT_DEMO=all
+      WITHOUT_DEMO: "${DOODBA_WITHOUT_DEMO-false}"
+    volumes:
+      - ./odoo/custom:/opt/odoo/custom:ro,z
+      - ./odoo/auto:/opt/odoo/auto:rw,z
+    depends_on:
+      - db
+      - proxy_ovh
+      - proxy_fonts_googleapis_com
+      - proxy_fonts_gstatic_com
+      - proxy_www_google_com
+      - proxy_www_googleapis_com
+      - proxy_www_gravatar_com
+      - proxy_website_api_odoo_com
+    command:
+      - odoo
+      - --limit-memory-soft=0
+      - --limit-time-real-cron=9999999
+      - --limit-time-real=9999999
+      - --workers=0
+      - --dev=all
+  #   - --update=all
+  #   - --stop-after-init
+  #   - --load=web,openupgrade_framework
+
+  db:
+    extends:
+      file: common.yaml
+      service: db
+    environment:
+      POSTGRES_DB: *dbname
+      POSTGRES_PASSWORD: odoopassword
+
+  pgweb:
+    image: docker.io/sosedoff/pgweb
+    networks: *public
+    ports:
+      - "127.0.0.1:19081:8081"
+    environment:
+      DATABASE_URL: postgres://odoo:odoopassword@db:5432/devel?sslmode=disable
+    depends_on:
+      - db
+
+  # Whitelist outgoing traffic for tests, reports, etc.
+  proxy_ovh:
+    image: ghcr.io/tecnativa/docker-whitelist:latest
+    networks:
+      default:
+        aliases:
+          - ssl0.ovh.net
+      public:
+    environment:
+      TARGET: ssl0.ovh.net
+      PRE_RESOLVE: 1
+      PORT: "465 587"
+
+  # Whitelist outgoing traffic for tests, reports, etc.
+  proxy_cajon:
+    image: ghcr.io/tecnativa/docker-whitelist:latest
+    networks:
+      default:
+        aliases:
+          - 193.30.124.175
+      public:
+    environment:
+      TARGET: 193.30.124.175
+      PRE_RESOLVE: 0
+      PORT: "3211"
+
+  proxy_fonts_googleapis_com:
+    image: ghcr.io/tecnativa/docker-whitelist:latest
+    networks:
+      default:
+        aliases:
+          - fonts.googleapis.com
+      public:
+    environment:
+      TARGET: fonts.googleapis.com
+      PRE_RESOLVE: 1
+
+  proxy_fonts_gstatic_com:
+    image: ghcr.io/tecnativa/docker-whitelist:latest
+    networks:
+      default:
+        aliases:
+          - fonts.gstatic.com
+      public:
+    environment:
+      TARGET: fonts.gstatic.com
+      PRE_RESOLVE: 1
+
+  proxy_www_google_com:
+    image: ghcr.io/tecnativa/docker-whitelist:latest
+    networks:
+      default:
+        aliases:
+          - www.google.com
+      public:
+    environment:
+      TARGET: www.google.com
+      PRE_RESOLVE: 1
+
+  proxy_www_googleapis_com:
+    image: ghcr.io/tecnativa/docker-whitelist:latest
+    networks:
+      default:
+        aliases:
+          - www.googleapis.com
+      public:
+    environment:
+      TARGET: www.googleapis.com
+      PRE_RESOLVE: 1
+
+  proxy_www_gravatar_com:
+    image: ghcr.io/tecnativa/docker-whitelist:latest
+    networks:
+      default:
+        aliases:
+          - www.gravatar.com
+      public:
+    environment:
+      TARGET: www.gravatar.com
+      PRE_RESOLVE: 1
+
+  proxy_website_api_odoo_com:
+    image: ghcr.io/tecnativa/docker-whitelist:latest
+    networks:
+      default:
+        aliases:
+          - website.api.odoo.com
+      public:
+    environment:
+      TARGET: website.api.odoo.com
+      PRE_RESOLVE: 1
+      HTTPS_METHOD: CONNECT
+
+networks:
+  default:
+    internal: false
+  public:
+
+volumes:
+  filestore:
+  db:
