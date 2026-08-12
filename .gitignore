@@ -3,8 +3,11 @@
 /odoo/custom/src/*/
 !/odoo/custom/src/private/
 !/odoo/custom/src/xtendoo/
+!/odoo/custom/src/custom-ganafote/
 /odoo/custom/src/xtendoo/*/
 !/odoo/custom/src/xtendoo/xtendoo_xtd_theme/
+/odoo/custom/src/custom-ganafote/**
+!/odoo/custom/src/custom-ganafote/ganafote_document_format/views/report_invoice.xml
 
 # Ignore docker-compose.yml and overrides by default, to allow easy defaults per clone
 /docker-compose.yml
